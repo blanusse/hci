@@ -7,6 +7,18 @@ body {
     min-height: 100vh;
 }
 
+.v-main{
+    background: var(--bg);
+    /* padding: clamp(1rem, 4vw, 3rem); */
+}
+
+
+.page-content {             
+    padding: clamp(3rem, 4vw, 5rem);
+    max-width: 1200px;
+    min-width: 100px;
+    margin: 0 auto;
+  }
 
 :root {
     --bg: #F4F5FB;

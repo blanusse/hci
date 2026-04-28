@@ -40,12 +40,6 @@
         </svg>
       </button>
       <button class="icon-btn">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="3"/>
-          <path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/>
-        </svg>
-      </button>
-      <button class="icon-btn">
         <svg width="28" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
         </svg>
@@ -78,7 +72,7 @@ const navLinks = ref([
 ])
 
 const iconMap = {
-  rutinas:  `<circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/>`,
+  rutinas:  `<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>`,
   energia:  `<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>`,
   permisos: `<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>`,
 }
@@ -112,7 +106,7 @@ onMounted(async () => {
   align-items: center;
   gap: 0.5rem;
   font-weight: 800;
-  font-size: 1.125rem;
+  font-size: 1.175rem;
   color: #6366F1;
   background: transparent;
   border: none;
@@ -166,7 +160,7 @@ onMounted(async () => {
   gap: 0.4rem;
   padding: 0.4rem 0.9rem;
   border-radius: 8px;
-  font-size: 1.125rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: #6366F1;
   text-decoration: none;
