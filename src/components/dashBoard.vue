@@ -1,14 +1,18 @@
 <template>
    <div class="dashboard">
-      <div class="message-banner">
+      <div class="banner">
          <div class="banner-left">
             <div class="banner-greeting">{{saludo}}, {{ usuario }}</div>
             <div class="banner-date">{{ fecha }}</div>
          </div>
          <div class="banner-right">
             <div class="banner-time">{{ hora }}</div>
-            <div class="banner-weather">{{ clima }}</div>
+            <div class="banner-weather">{{ temperatura }} - {{ clima }}</div>
          </div>
+      </div>
+      <div class="hogares">
+         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3F51B5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="house" aria-hidden="true" class="lucide lucide-house"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+         Mis Hogares
       </div>
    </div>
 </template>
@@ -42,14 +46,14 @@ const saludo = horaActual < 12 ? 'Buenos días' : horaActual < 20 ? 'Buenas tard
 //levanta la info del usuario para poner el nombre en el cartel de bienvenida
 const usuario = ref('') 
 onMounted(async() => {
-   const res = await fetch('http://hci.it.itba.edu.ar/api/users/profile', {
-      headers: {
-         'Content-Type': 'application/json',
-         'X-API-KEY': import.meta.env.VITE_API_KEY
-      }
-   })
-   const data = await res.json()
-   usuario.value = data.name
+   // const res = await fetch('http://hci.it.itba.edu.ar/api/users/profile', {
+   //    headers: {
+   //       'Content-Type': 'application/json',
+   //       'X-API-KEY': import.meta.env.VITE_API_KEY
+   //    }
+   // })
+   // const data = await res.json()
+   // usuario.value = data.name
 
    const resClima = await fetch(
    `https://api.openweathermap.org/data/2.5/weather?q=Buenos+Aires&appid=${import.meta.env.VITE_WEATHER_API_KEY}&units=metric&lang=es`
@@ -70,7 +74,7 @@ const dataClima = await resClima.json()
    /* background-color: white; */
 }
 
-.message-banner {
+.banner {
     display: flex;
     margin: 0 auto;
     align-items: center;
@@ -99,24 +103,59 @@ const dataClima = await resClima.json()
    /* margin: 10px; */
 }
 
+
 .banner-greeting{
-   font-size: 1.6rem;
+   font-size: 1.4375rem;
    font-weight: 700;
    /* text-transform: capitalize; */
 }
 
 .banner-date{
-   font-size: 1rem;
+   font-size: 1.025rem;
    opacity: .7;
    font-weight: 550;
    text-transform: capitalize;
 }
 
+.banner-right{
+   display: flex;
+   flex-direction: column;
+   align-items: flex-end;
+   gap: 6px;
+   flex-shrink: 0;
+}
+
 .banner-time{
-   font-size: 2rem;
+   font-size: 2.4rem;
    font-weight: 800;
    letter-spacing: -.02em;
    line-height: 1;
+   align-self: center;
+}
+
+.banner-weather{
+   display: flex;
+   align-items: center;
+   gap: 5px;
+   font-size: 1.025rem;
+   font-weight: 750;
+   opacity: .78;
+   background: rgba(255, 255, 255, .12);
+   border-radius: 20px;
+   padding: 4px 15px;
+}
+
+
+.hogares {
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 16px;
+    margin-top: 32px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text);
+    letter-spacing: -.02em;
 }
 
 </style>

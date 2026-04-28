@@ -11,21 +11,14 @@
       <span class="brand-name">SmartHome</span>
     </button>
 
-    <!-- Links (solo desktop) -->
     <div class="navbar-links">
-      <a
-        v-for="link in navLinks"
-        :key="link.id"
-        :href="link.href"
-        class="nav-link"
-      >
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-          v-html="iconMap[link.icon]"></svg>
-        {{ link.label }}
-      </a>
+      <button class="nav-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="clock" aria-hidden="true" class="lucide lucide-clock"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg> Rutinas </button>
+
+      <button class="nav-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="zap" aria-hidden="true" class="lucide lucide-zap"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"></path></svg> Energía </button>
+
+      <button class="nav-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="shield-check" aria-hidden="true" class="lucide lucide-shield-check"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path><path d="m9 12 2 2 4-4"></path></svg> Permisos </button>
     </div>
 
-    <!-- Acciones -->
     <div class="navbar-actions">
       <button class="icon-btn">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -46,36 +39,11 @@
       </button>
     </div>
   </nav>
-
-  <!-- Bottom nav (solo mobile) -->
-  <nav class="bottom-nav">
-    <a
-      v-for="link in navLinks"
-      :key="link.id"
-      :href="link.href"
-      class="bottom-nav-link"
-    >
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        v-html="iconMap[link.icon]"></svg>
-      <span>{{ link.label }}</span>
-    </a>
-  </nav>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 
-const navLinks = ref([
-  { id: 1, label: 'Rutinas',  href: '/rutinas',  icon: 'rutinas'  },
-  { id: 2, label: 'Energía',  href: '/energia',  icon: 'energia'  },
-  { id: 3, label: 'Permisos', href: '/permisos', icon: 'permisos' },
-])
-
-const iconMap = {
-  rutinas:  `<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>`,
-  energia:  `<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>`,
-  permisos: `<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>`,
-}
 
 const notifications = ref(0)
 
@@ -101,12 +69,32 @@ onMounted(async () => {
   border-bottom: 1px solid #e5e8f0;
 }
 
+.nav-btn{
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: #fff;
+  border: 1px solid transparent;
+  border-bottom: none;
+  color: var(--accent);
+  padding: 8px 14px;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  font-size: 1.015rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  position: relative;
+  height: 40px;
+  margin-bottom: -1px;
+  font-family: inherit;
+}
+
 .navbar-brand {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   font-weight: 800;
-  font-size: 1.175rem;
+  font-size: 1.406rem;
   color: #6366F1;
   background: transparent;
   border: none;
@@ -154,19 +142,7 @@ onMounted(async () => {
   flex-shrink: 0;
 }
 
-.nav-link {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.4rem 0.9rem;
-  border-radius: 8px;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #6366F1;
-  text-decoration: none;
-  transition: background 0.15s, color 0.15s;
-}
-.nav-link:hover{
+.nav-btn:hover{
   background: #6366F1;
   color: white;
 }
@@ -214,11 +190,22 @@ onMounted(async () => {
   display: none;
 }
 
-@media (max-width: 640px) {
-  .navbar-links {
-    display: none;
-  }
+@media (max-width: 780px) {
+  .navbar-links {                                                                                                                                 
+      position: fixed;                 
+      bottom: 0;
+      left: 0;                    
+      right: 0;             
+      height: 60px;
+      background: white;
+      border-top: 1px solid #e5e8f0;
+      justify-content: space-around;   
+      z-index: 100;
+    }
 
+  .navbar-brand{
+    flex: 1;
+  }
   .bottom-nav {
     display: flex;
     position: fixed;
