@@ -47,15 +47,17 @@ import { ref, onMounted } from 'vue'
 
 const notifications = ref(0)
 
-onMounted(async () => {
-  try {
-    const res = await fetch('https://tu-api.com/navbar')
-    const data = await res.json()
-    notifications.value = data.notifications
-  } catch (err) {
-    console.error('Error cargando navbar:', err)
-  }
-})
+
+//TODO: hacer cuando se use la API -> levantar notificaciones
+// onMounted(async () => {
+//   try {
+//     const res = await fetch('https://tu-api.com/navbar')
+//     const data = await res.json()
+//     notifications.value = data.notifications
+//   } catch (err) {
+//     console.error('Error cargando navbar:', err)
+//   }
+// })
 </script>
 
 <style scoped>
