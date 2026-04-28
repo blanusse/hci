@@ -1,11 +1,10 @@
 import {createRouter, createWebHistory} from 'vue-router'
-import { components } from 'vuetify/dist/vuetify.js'
 
 import Rutinas from '@/components/Rutinas.vue'
 import Energia from '@/components/Energia.vue'
 import Permisos from '@/components/Permisos.vue'
 import Dashboard from '@/components/Dashboard.vue'
-import Navbar from '@/components/Navbar.vue'
+// import Navbar from '@/components/Navbar.vue'
 
 
 const router = createRouter({
