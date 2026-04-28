@@ -112,4 +112,11 @@ const dataClima = await resClima.json()
    text-transform: capitalize;
 }
 
+.banner-time{
+   font-size: 2rem;
+   font-weight: 800;
+   letter-spacing: -.02em;
+   line-height: 1;
+}
+
 </style>
