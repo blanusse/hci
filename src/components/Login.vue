@@ -3,8 +3,7 @@
 
       <!-- Panel izquierdo: marca -->
       <div class="auth-brand">
-      <div class="auth-brand-inner">
-
+         <div class="auth-brand-inner">
             <div class="auth-brand-logo">
                <span class="app-logo-badge">
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -95,20 +94,11 @@
                   </svg>
                   <input class="auth-input" :type="mostrarPassword ? 'text' : 'password'" placeholder="Tu contraseña" v-model="password" />
                   <button class="auth-eye-btn" type="button" @click="mostrarPassword = !mostrarPassword">
-                     <svg v-if="!mostrarPassword" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/>
-                        <circle cx="12" cy="12" r="3"/>
-                     </svg>
-                     <svg v-else xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/>
-                        <path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/>
-                        <path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/>
-                        <path d="m2 2 20 20"/>
-                     </svg>
+                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-html="mostrarPassword ? eyeOpen : eyeClosed"></svg>
                   </button>
                </div>
                <div class="auth-field-foot">
-                  <button class="auth-link-btn" type="button">¿Olvidaste tu contraseña?</button>
+                  <button class="auth-link-btn" type="button" @click="vista='recuperacion'">¿Olvidaste tu contraseña?</button>
                </div>
             </div>
 
@@ -127,7 +117,7 @@
                <span>¿No tenés cuenta?</span>
             </div>
 
-            <button class="auth-btn-secondary" @click="vista='registro'">
+            <button class="auth-btn-secondary" @click="vista='registro' ;password='';email=''">
                Crear cuenta nueva
             </button>
 
@@ -175,16 +165,7 @@
                   </svg>
                   <input class="auth-input" :type="mostrarPassword ? 'text' : 'password'" placeholder="Tu contraseña" v-model="password" />
                   <button class="auth-eye-btn" type="button" @click="mostrarPassword = !mostrarPassword">
-                     <svg v-if="!mostrarPassword" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/>
-                        <circle cx="12" cy="12" r="3"/>
-                     </svg>
-                     <svg v-else xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/>
-                        <path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/>
-                        <path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/>
-                        <path d="m2 2 20 20"/>
-                     </svg>
+                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-html="mostrarPassword ? eyeOpen : eyeClosed"></svg>
                   </button>
                </div>
             </div>
@@ -199,16 +180,7 @@
                   </svg>
                   <input class="auth-input" :type="mostrarPasswordRepeat ? 'text' : 'password'" placeholder="Tu contraseña" v-model="repeatPassword" />
                   <button class="auth-eye-btn" type="button" @click="mostrarPasswordRepeat = !mostrarPasswordRepeat">
-                     <svg v-if="!mostrarPasswordRepeat" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/>
-                        <circle cx="12" cy="12" r="3"/>
-                     </svg>
-                     <svg v-else xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/>
-                        <path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/>
-                        <path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/>
-                        <path d="m2 2 20 20"/>
-                     </svg>
+                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-html="mostrarPasswordRepeat ? eyeOpen : eyeClosed"></svg>
                   </button>
                </div>
             </div>
@@ -230,13 +202,13 @@
                <span>¿Ya tenés cuenta?</span>
             </div>
 
-            <button class="auth-btn-secondary" @click="vista = 'login'">
+            <button class="auth-btn-secondary" @click="vista = 'login'; password=''; email=''; repeatPassword=''; name=''">
                Iniciar sesión
             </button>
 
          </div>
       </div>
-      <div v-else class="auth-form-panel">
+      <div v-else-if="vista == 'verificacion'" class="auth-form-panel">
          <div class="auth-form-wrap">
 
             <div class="auth-form-header">
@@ -274,7 +246,7 @@
                <button class="auth-link-btn" @click="registrarse">Reenviar código</button>
             </div>
 
-            <button class="auth-btn-ghost">
+            <button class="auth-btn-ghost" @click="vista='login'">
                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="m12 19-7-7 7-7"/>
                   <path d="M19 12H5"/>
@@ -284,16 +256,96 @@
 
          </div>
       </div>
-      
+      <div v-else-if="vista == 'recuperacion'" class="auth-form-panel">
+         <div class="auth-form-wrap">
+            <div class="auth-form-header">
+               <div class="auth-verify-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="key-round" aria-hidden="true" class="lucide lucide-key-round"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"></path><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"></circle></svg>
+               </div>
+               <h2 class="auth-form-title">Recuperar contraseña</h2>
+               <p class="auth-form-sub">Ingresá tu correo y te enviaremos un código para restablecer tu contraseña.</p>
+            </div>
+            <div class="auth-field">
+               <label class="auth-label">Correo electrónico</label>
+               <div class="auth-input-wrap">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="mail" aria-hidden="true" class="lucide lucide-mail"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"></path><rect x="2" y="4" width="20" height="16" rx="2"></rect></svg>
+                  <input class="auth-input" type="email" placeholder="tu@correo.com" v-model="email">
+               </div>
+            </div>
+         <p v-if="errorMsg" class="auth-error">{{ errorMsg }}</p>
+
+
+            <button class="auth-btn-primary" @click="forgotPassword()">
+               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="send" aria-hidden="true" class="lucide lucide-send"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"></path><path d="m21.854 2.147-10.94 10.939"></path></svg>
+                   Enviar código de recuperación
+            </button>
+            <button class="auth-btn-ghost" @click="vista='login'">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="arrow-left" aria-hidden="true" class="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>
+                  Volver al inicio de sesión
+            </button>
+            </div>
+         </div>
+         <div v-else class="auth-form-panel">
+            <div class="auth-form-wrap">
+               <div class="auth-form-header">
+                  <div class="auth-verify-icon">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="lock-keyhole" aria-hidden="true" class="lucide lucide-lock-keyhole"><circle cx="12" cy="16" r="1"></circle><rect x="3" y="10" width="18" height="12" rx="2"></rect><path d="M7 10V7a5 5 0 0 1 10 0v3"></path></svg>
+                  </div>
+                  <h2 class="auth-form-title">Nueva contraseña</h2>
+                  <p class="auth-form-sub">Ingresá el código recibido y tu nueva contraseña.</p>
+               </div>
+               <div class="auth-field">
+                  <label class="auth-label">Código de verificación</label>
+                  <input class="auth-input auth-code-input" type="text" placeholder="000000" v-model="inputCode">
+               </div>
+               <div class="auth-field">
+                  <label class="auth-label">Nueva contraseña</label>
+                  <div class="auth-input-wrap">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="lock" aria-hidden="true" class="lucide lucide-lock"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                     </svg>
+                     <input class="auth-input" :type="mostrarPassword ? 'text' : 'password'" placeholder="Mínimo 6 caracteres" v-model="password" />
+                     <button class="auth-eye-btn" type="button" @click="mostrarPassword = !mostrarPassword">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-html="mostrarPassword ? eyeOpen : eyeClosed"></svg>
+                     </button>
+                  </div>
+               </div>
+               <div class="auth-field">
+                  <label class="auth-label">Confirmar nueva contraseña</label>
+                  <div class="auth-input-wrap">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="lock-keyhole" aria-hidden="true" class="lucide lucide-lock-keyhole"><circle cx="12" cy="16" r="1"></circle><rect x="3" y="10" width="18" height="12" rx="2"></rect><path d="M7 10V7a5 5 0 0 1 10 0v3"></path></svg>
+                     <input class="auth-input" :type="mostrarPasswordRepeat ? 'text' : 'password'" placeholder="Repetí tu nueva contraseña" v-model="repeatPassword" />
+                     <button class="auth-eye-btn" type="button" @click="mostrarPasswordRepeat = !mostrarPasswordRepeat">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-html="mostrarPasswordRepeat ? eyeOpen : eyeClosed"></svg>
+                     </button>
+                  </div>
+               </div>
+
+            <p v-if="errorMsg" class="auth-error">{{ errorMsg }}</p>
+
+
+               <button class="auth-btn-primary" @click="resetPassword()">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="save" aria-hidden="true" class="lucide lucide-save"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"></path><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"></path><path d="M7 3v4a1 1 0 0 0 1 1h7"></path></svg>
+                  Restablecer contraseña
+               </button>
+               <button class="auth-btn-ghost" @click="vista='login'">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="arrow-left" aria-hidden="true" class="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>
+                  Volver
+               </button>
+            </div>
+         </div>
    </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { apiPost } from '@/utils/api'
+
+const eyeOpen = `<path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/>`
+const eyeClosed = `<path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/>`
 
 const router = useRouter()
-const vista=ref('login')
+const vista=ref('login') //posibles valores: login, registro, verificacion, recuperacion, cambiarPswrd
 
 const email = ref('')
 const password = ref('')
@@ -305,9 +357,12 @@ const name = ref('')
 const repeatPassword = ref('');
 const mostrarPasswordRepeat = ref(false)
 
-const codigoVerif = ref('')
+// const codigoVerif = ref('') sirve para guardar el codigo que se manda
 const inputCode = ref('')
 
+watch(vista, () => { //cada vez que cambie de vista se limpia el error
+     errorMsg.value = ''
+  })
 
 
 
@@ -316,15 +371,7 @@ async function iniciarSesion() {
    errorMsg.value = ''
    cargando.value = true
    try {
-      const res = await fetch('https://hci.it.itba.edu.ar/api/users/login', {
-         method: 'POST',
-         headers: {
-            'Content-Type': 'application/json',
-            'X-API-Key': import.meta.env.VITE_API_KEY,
-         },
-         body: JSON.stringify({ email: email.value, password: password.value }),
-      })
-      const data = await res.json()
+      const data = await apiPost('/users/login', { email: email.value, password: password.value })
 
       if (data.error) {
          errorMsg.value = data.error.description
@@ -346,15 +393,8 @@ async function registrarse(){
      return
   }
    try {
-      const res = await fetch('https://hci.it.itba.edu.ar/api/users/register', {
-         method: 'POST',
-         headers: {
-            'Content-Type': 'application/json',
-            'X-API-Key': import.meta.env.VITE_API_KEY,
-         },
-         body: JSON.stringify({ email: email.value, password: password.value, name: name.value, metadata: {} }),
-      })
-      const data = await res.json()
+      const data = await apiPost('/users/register', { email: email.value, password: password.value, name: name.value, metadata: {} })
+
       if (data.error) {
          errorMsg.value = data.error.description
       } else {
@@ -369,22 +409,14 @@ async function registrarse(){
 
 async function sendVerifMail(){
    try {
-      const res = await fetch('https://hci.it.itba.edu.ar/api/users/send-verification', {
-         method: 'POST',
-         headers: {
-            'Content-Type': 'application/json',
-            'X-API-Key': import.meta.env.VITE_API_KEY,
-         },
-         body: JSON.stringify({ email: email.value}),
-      })
-      const data = await res.json()
-      console.log(data)
+      const data = await apiPost('/users/send-verification', { email: email.value})
+      // console.log(data)
 
       if (data.error) {
          errorMsg.value = data.error.description
       } else {
          //se mando el codigo bien
-         codigoVerif.value=data.code
+         // codigoVerif.value=data.code
       }
    }
    catch{
@@ -394,22 +426,51 @@ async function sendVerifMail(){
 
 async function verifyCode(){
    try {
-      const res = await fetch('https://hci.it.itba.edu.ar/api/users/verify-account', {
-         method: 'POST',
-         headers: {
-            'Content-Type': 'application/json',
-            'X-API-Key': import.meta.env.VITE_API_KEY,
-         },
-         body: JSON.stringify({ code: inputCode.value}),
-      })
-      const data = await res.json()
+      const data = await apiPost('/users/verify-account', {code: inputCode.value})
 
       if (data.error) {
          errorMsg.value = data.error.description
       } else {
          //se ingreso el codigo correcto
-         console.log('check')
+         // console.log('check')
          router.push('/Dashboard')
+      }
+   }
+   catch{
+      errorMsg.value = 'No se pudo conectar al servidor. Intentá de nuevo.'
+   }
+}
+
+async function forgotPassword(){
+   try {
+      const data = await apiPost('/users/forgot-password', {email: email.value})
+
+      if (data.error) {
+         errorMsg.value = data.error.description
+      } else {
+         // codigoVerif.value = data.value
+         password.value = ''
+         vista.value = 'cambiarPswrd'
+      }
+   }
+   catch{
+      errorMsg.value = 'No se pudo conectar al servidor. Intentá de nuevo.'
+   }
+}
+
+async function resetPassword() {
+   if (password.value != repeatPassword.value){
+     errorMsg.value = 'Las contraseñas deben coincidir'
+     return
+   }
+   try {
+      const data = await apiPost('/users/reset-password', {code: inputCode.value, password: repeatPassword.value})
+
+      if (data.error) {
+         errorMsg.value = data.error.description
+      } else {
+         // codigoVerif.value = data.value
+         vista.value = 'login'
       }
    }
    catch{
@@ -572,7 +633,7 @@ async function verifyCode(){
 }
 
 .auth-form-title {
-    font-size: 1.5rem;
+    font-size: 1.9rem;
     font-weight: 800;
     color: var(--text);
     letter-spacing: -.02em;
@@ -773,6 +834,26 @@ async function verifyCode(){
 }
 .auth-btn-ghost:hover {
     background-color: #e5e6ec;
-
 }
+
+
+
+
+.auth-verify-icon {
+    width: 58px;
+    height: 58px;
+    border-radius: 16px;
+    background: rgba(63, 81, 181, .1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+.auth-verify-icon i, .auth-verify-icon svg {
+    width: 28px;
+    height: 28px;
+    color: #3F51B5;
+}
+
 </style>
