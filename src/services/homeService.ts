@@ -1,14 +1,11 @@
 import { apiDelete, apiGet, apiPost } from '@/utils/api'
 
+//getters
+
 export async function getHomes(){
    return await apiGet('/homes')
 }
 
-
-
-export async function createHome(name: string){
-   return await apiPost('/homes', {name, metadata: {}})
-}
 
 export async function getRooms(homeId: string){
    return await apiGet(`/homes/${homeId}/rooms`)
@@ -18,6 +15,19 @@ export async function getRoomDevices(roomId: string){
    return await apiGet(`/rooms/${roomId}/devices`)
 }
 
+//creators
+
+export async function createHome(name: string, icon: string){
+   return await apiPost('/homes', {name, metadata: {icon}})
+}
+
+export async function createRoomInHome(homeId: string, name: string, icon: string =''){
+   const ans = await apiPost(`/rooms`, {name, metadata: {icon}})
+   return await apiPost(`/homes/${homeId}/rooms/${ans.id}`, {})
+}
+
+//deletes
+
 export async function deleteHome(homeId: string){
    return await apiDelete(`/homes/${homeId}`)
 }
@@ -25,6 +35,9 @@ export async function deleteHome(homeId: string){
 export async function deleteRoomFromHome(roomId: string){
    return await apiDelete(`/homes/rooms/${roomId}`)
 }
+
+
+
 
 
 

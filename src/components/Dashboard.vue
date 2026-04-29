@@ -1,5 +1,5 @@
 <template>
-   <div class="dashboard">
+   <div class="dashboard page-content">
       <div class="banner">
          <div class="banner-left">
             <div class="banner-greeting">{{saludo}}, {{ usuario }}</div>
@@ -18,12 +18,13 @@
       </div>
 
       <div class="hogares-cuadro">
-         <div v-for="hogar in hogares" :key="hogar.id" class="hogar-card">
+         <div v-for="hogar in hogares" :key="hogar.id" class="hogar-card" @click="router.push('/homes/' + hogar.id)"> 
             <div class="hogar-head">
                <div class="hogar-icon">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-html="hogar.metadata?.icon || defaultHouseIcon">
+                  </svg>
                </div>
-               <button class="hogar-delete" @click="deletes()">
+               <button class="hogar-delete" @click.stop="hogarAEliminar = hogar">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                </button>
                <div class="hogar-main">
@@ -33,7 +34,7 @@
                <svg class="hogar-chevron" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
             </div>
          </div>
-         <button class="add-home" @click="createHome('casa campo')">
+         <button class="add-card-btn" @click="mostrarNuevoHogar=true">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="plus-circle" aria-hidden="true" class="lucide lucide-plus-circle"><circle cx="12" cy="12" r="10"></circle><path d="M8 12h8"></path><path d="M12 8v8"></path></svg> 
             Agregar hogar 
          </button>
@@ -68,16 +69,31 @@
       :encendido-inicial="modalAbierto.encendido"
       @close="modalAbierto = null"
    />
+
+   <NuevoHogarModal 
+   v-if="mostrarNuevoHogar"
+   @close="mostrarNuevoHogar=false"
+   @created="cargarHogares()"/>
+   <ConfirmarEliminarModal
+   v-if="hogarAEliminar"
+   :nombre="hogarAEliminar.name"
+   @confirm="borrarHogar(hogarAEliminar.id); hogarAEliminar = null"
+   @cancel="hogarAEliminar=null"
+   />
 </template>
 
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { deviceIcons } from '@/utils/deviceIcons'
 import { getHomes, createHome, getRoomDevices, getRooms, deleteHome } from '@/services/homeService'
+import { getUserInfo } from '@/services/userService'
 import { connectSocket } from '@/services/socketService'
 
 import LamparaModal from '@/components/dispositivos/LamparaModal.vue'
+import NuevoHogarModal from './NuevoHogarModal.vue'
+import ConfirmarEliminarModal from './ConfirmarEliminarModal.vue'
 
 const temperatura = ref('')
 const clima = ref('')
@@ -86,15 +102,20 @@ const hora = ref('')
 const horaActual = new Date().getHours() 
 let intervalo: number
 
+const fecha = new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long'})    
+const saludo = horaActual < 12 ? 'Buenos días' : horaActual < 20 ? 'Buenas tardes' : 'Buenas noches'
 
-const hogares = ref([]) //hogares del usuario
+const router = useRouter()
+const hogares = ref<any[]>([]) //hogares del usuario
 const usuario = ref('')  //nombre del usuario
 
 const socket = connectSocket() //se conecta para recibir señales
 
-async function deletes() {
-   deleteHome(hogares.value[0].id)
-}
+const mostrarNuevoHogar = ref(false)
+
+const hogarAEliminar = ref<any>(null)
+
+const defaultHouseIcon = ref(`<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>`)
 
 socket.on('deviceEvent', (event)=>{
    console.log(event)
@@ -104,9 +125,10 @@ socket.on('deviceEvent', (event)=>{
    }
 })
 
+
 async function cargarHogares() {                                                                                                                
-     const data = await getHomes()                                                                                                              
-     for (const hogar of data) {                                                                                                                  
+     const data = await getHomes()
+     for (const hogar of data) {
         const rooms = await getRooms(hogar.id)
         hogar.rooms = rooms.length
         let totalDevices = 0
@@ -119,6 +141,18 @@ async function cargarHogares() {
      hogares.value = data
   }
 
+async function getUsername(){
+   const info = await getUserInfo()
+   usuario.value = info.name
+  }
+
+
+async function borrarHogar(id: string){
+   await deleteHome(id)
+   await cargarHogares()
+}
+
+
 //levanta la hora
 onMounted(() => {
    intervalo = setInterval(() => {
@@ -128,12 +162,11 @@ onMounted(() => {
 })
 
 onUnmounted(() => clearInterval(intervalo))
-const fecha = new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long'})    
-const saludo = horaActual < 12 ? 'Buenos días' : horaActual < 20 ? 'Buenas tardes' : 'Buenas noches'
 
 
 onMounted(async() => {
    await cargarHogares()
+   await getUsername()
    const resClima = await fetch(
    `https://api.openweathermap.org/data/2.5/weather?q=Buenos+Aires&appid=${import.meta.env.VITE_WEATHER_API_KEY}&units=metric&lang=es`
 )
@@ -145,11 +178,11 @@ const dataClima = await resClima.json()
 })
 
 
-//TODO: esta lista dsp va a tener la lista de hogares sacado de la api
+
 
 
 //TODO: esta lista va a tener los ultimos N dispositivos manipulados que levanta de la api
-const actividad = ref([])
+const actividad = ref<any[]>([])
 
 // Modal de dispositivos
 const modalAbierto = ref<typeof actividad.value[0] | null>(null)
@@ -159,11 +192,6 @@ function abrirModal(item: typeof actividad.value[0]) {
 </script>
 
 <style scoped>
-
-.dashboard{
-   padding: 0 10px 0 20px;
-   /* background-color: white; */
-}
 
 /* estilos de banner*/
 .banner {
@@ -177,7 +205,6 @@ function abrirModal(item: typeof actividad.value[0]) {
     padding: 22px 26px;
     margin-bottom: 28px;
     margin-top: 28px;
-    max-width: 1050px;
     color: #fff;
     box-shadow: 0 4px 20px rgba(26, 35, 126, .30);
 }
@@ -199,7 +226,7 @@ function abrirModal(item: typeof actividad.value[0]) {
 .banner-greeting{
    font-size: 1.4375rem;
    font-weight: 700;
-   /* text-transform: capitalize; */
+   text-transform: capitalize;
 }
 
 .banner-date{
@@ -279,6 +306,7 @@ function abrirModal(item: typeof actividad.value[0]) {
    border-color: var(--accent);
    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.15);
    transform: translateY(-2px);
+   background: var(--surface-light);
 }
 
 .hogar-head {
@@ -313,7 +341,7 @@ function abrirModal(item: typeof actividad.value[0]) {
   height: 38px;
   border-radius: 8px;
   border: none;
-  background: white;
+  background: transparent;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -323,6 +351,7 @@ function abrirModal(item: typeof actividad.value[0]) {
 }
 .hogares-delete svg {
     width: 14px;
+    background-color: transparent;
     height: 14px;
 }
 
@@ -348,7 +377,7 @@ function abrirModal(item: typeof actividad.value[0]) {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  font-size: 1.6rem;
+  font-size: 2rem;
   font-weight: 800;
   line-height: 1.15;
   letter-spacing: -0.02em;
@@ -358,7 +387,7 @@ function abrirModal(item: typeof actividad.value[0]) {
 }
 
 .hogar-sub {
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 500;
   color: var(--text-muted);
   line-height: 1.35;
@@ -370,29 +399,7 @@ function abrirModal(item: typeof actividad.value[0]) {
    color: var(--accent);
 }
 
-.add-home{
-   display: flex;
-   align-items: center;
-   justify-content: center;
-   gap: 8px;
-   width: 100%;
-   padding: 20px;
-   border-radius: 16px;
-   border: 1.5px dashed rgba(63, 81, 181, .4);
-   background: rgba(63, 81, 181, .04);
-   color: #3F51B5;
-   font-size: 1.1rem;
-   font-weight: 700;
-   font-family: inherit;
-   cursor: pointer;
-   transition: background .15s, border-color .15s;
-}
 
-.add-home:hover{
-   background: rgba(63, 81, 181, .11);
-   border: 1.5px dashed rgba(63, 81, 181, .7);
-
-}
 
 /* estilos de recientes*/
 

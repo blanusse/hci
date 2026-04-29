@@ -14,11 +14,17 @@ body {
 
 
 .page-content {             
-    padding: clamp(3rem, 4vw, 5rem);
+    padding: clamp(.3rem, .5rem, 1.5rem) clamp(3rem, 4vw, 5rem);
     max-width: 1200px;
     min-width: 100px;
     margin: 0 auto;
   }
+
+@media screen {
+    .page-content {             
+        padding-bottom: 60px;
+  }
+}
 
 :root {
     --bg: #F4F5FB;
@@ -49,3 +55,27 @@ button:disabled {
     background: #96b4cb;
     /* color: white;             */
   }
+
+.add-card-btn{
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   gap: 8px;
+   width: 100%;
+   padding: 20px;
+   border-radius: 16px;
+   border: 1.5px dashed rgba(63, 81, 181, .4);
+   background: rgba(63, 81, 181, .04);
+   color: #3F51B5;
+   font-size: 1.1rem;
+   font-weight: 700;
+   font-family: inherit;
+   cursor: pointer;
+   transition: background .15s, border-color .15s;
+}
+
+.add-card-btn:hover{
+   background: rgba(63, 81, 181, .11);
+   border: 1.5px dashed rgba(63, 81, 181, .7);
+
+}
