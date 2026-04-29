@@ -44,3 +44,8 @@ button:disabled {
     box-shadow: none !important;
     filter: grayscale(20%);
 }
+
+::selection {                               
+    background: #96b4cb;
+    /* color: white;             */
+  }

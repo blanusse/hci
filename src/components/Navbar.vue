@@ -158,7 +158,7 @@ const notifications = ref(0)
 .icon-btn {
   width: 36px;
   height: 36px;
-  border-radius: 8px;
+  border-radius: 18px;
   border: none;
   background: transparent;
   color: #4a5068;

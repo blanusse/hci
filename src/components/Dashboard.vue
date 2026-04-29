@@ -10,10 +10,13 @@
             <div class="banner-weather">{{ temperatura }} - {{ clima }}</div>
          </div>
       </div>
+
+      <!-- Hogares -->
       <div class="hogares-header">
          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="house" aria-hidden="true" class="lucide lucide-house"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
          Mis Hogares
       </div>
+
       <div class="hogares-cuadro">
          <div v-for="hogar in hogares" :key="hogar.id" class="hogar-card">
             <div class="hogar-head">
@@ -30,16 +33,48 @@
                <svg class="hogar-chevron" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
             </div>
          </div>
-         <div class="hogar-add">
-
-         </div>
+         <button class="add-home">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="plus-circle" aria-hidden="true" class="lucide lucide-plus-circle"><circle cx="12" cy="12" r="10"></circle><path d="M8 12h8"></path><path d="M12 8v8"></path></svg> 
+            Agregar hogar 
+         </button>
       </div>
+
+      <!-- Actividad reciente -->
+      <div class="actividad-header">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3F51B5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Actividad reciente
+      </div>
+      <div class="actividad-lista">
+        <div v-for="item in actividad" :key="item.id" class="recent-item" @click="abrirModal(item)">
+          <div :class="['recent-icon', item.encendido ? 'on' : 'off']">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-html="deviceIcons[item.tipo]"></svg>
+          </div>
+          <div class="recent-info">
+            <div class="recent-device">{{ item.nombre }}</div>
+            <div class="recent-location">{{ item.hogar }} · {{ item.habitacion }}</div>
+          </div>
+          <span :class="['recent-badge', item.encendido ? 'on' : 'off']">{{ item.estado }}</span>
+          <span class="recent-time">{{ item.tiempo }}</span>
+        </div>
+      </div>
+
    </div>
+
+   <!-- Modales de dispositivos -->
+   <LamparaModal
+      v-if="modalAbierto?.tipo === 'lampara'"
+      :nombre="modalAbierto.nombre"
+      :device-id="modalAbierto.id"
+      :encendido-inicial="modalAbierto.encendido"
+      @close="modalAbierto = null"
+   />
 </template>
 
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
+import { deviceIcons } from '@/utils/deviceIcons'
+import LamparaModal from '@/components/dispositivos/LamparaModal.vue'
 
 
 const temperatura = ref('')
@@ -89,10 +124,30 @@ const dataClima = await resClima.json()
 
 //TODO: esta lista dsp va a tener la lista de hogares sacado de la api
 const hogares = ref([      
-    { id: 1, name: 'Casa Ciudad', rooms: 5, devices: 5 },
+    { id: 1, name: 'Casa Cisd asd asdasdasdfsdfsdfsfsdfudad', rooms: 5, devices: 5 },
     { id: 2, name: 'Casa Pilar', rooms: 6, devices: 6 },
   ])
 
+
+//TODO: esta lista va a tener los ultimos N dispositivos manipulados que levanta de la api
+const actividad = ref([
+  { id: 1,  nombre: 'Aire acondicionado', hogar: 'Casa Ciudad', habitacion: 'Sala de estar', estado: 'Apagado',   tiempo: 'Hace 3 min',  encendido: false, tipo: 'ac'          },
+  { id: 2,  nombre: 'Luz baño',           hogar: 'Casa Ciudad', habitacion: 'Baño',          estado: 'Apagado',   tiempo: 'Hace 12 min', encendido: false, tipo: 'lampara'      },
+  { id: 3,  nombre: 'Riego automático',   hogar: 'Casa Pilar',  habitacion: 'Jardín',         estado: 'Encendido', tiempo: 'Hace 28 min', encendido: true,  tipo: 'grifo'        },
+  { id: 4,  nombre: 'Horno',              hogar: 'Casa Ciudad', habitacion: 'Cocina',         estado: 'Apagado',   tiempo: 'Hace 1 h',    encendido: false, tipo: 'horno'        },
+  { id: 5,  nombre: 'Parlante',           hogar: 'Casa Pilar',  habitacion: 'Oficina',        estado: 'Encendido', tiempo: 'Hace 2 h',    encendido: true,  tipo: 'parlante'     },
+  { id: 6,  nombre: 'Persiana living',    hogar: 'Casa Ciudad', habitacion: 'Living',         estado: 'Apagado',   tiempo: 'Hace 2 h',    encendido: false, tipo: 'persiana'     },
+  { id: 7,  nombre: 'Puerta principal',   hogar: 'Casa Pilar',  habitacion: 'Entrada',        estado: 'Apagado',   tiempo: 'Hace 3 h',    encendido: false, tipo: 'puerta'       },
+  { id: 8,  nombre: 'Alarma',             hogar: 'Casa Ciudad', habitacion: 'General',        estado: 'Encendido', tiempo: 'Hace 4 h',    encendido: true,  tipo: 'alarma'       },
+  { id: 9,  nombre: 'Heladera',           hogar: 'Casa Pilar',  habitacion: 'Cocina',         estado: 'Encendido', tiempo: 'Hace 5 h',    encendido: true,  tipo: 'heladera'     },
+  { id: 10, nombre: 'Aspiradora',         hogar: 'Casa Ciudad', habitacion: 'Dormitorio',     estado: 'Apagado',   tiempo: 'Hace 6 h',    encendido: false, tipo: 'aspiradora'   },
+])
+
+// Modal de dispositivos
+const modalAbierto = ref<typeof actividad.value[0] | null>(null)
+function abrirModal(item: typeof actividad.value[0]) {
+   modalAbierto.value = item
+}
 </script>
 
 <style scoped>
@@ -102,6 +157,7 @@ const hogares = ref([
    /* background-color: white; */
 }
 
+/* estilos de banner*/
 .banner {
     display: flex;
     margin: 0 auto;
@@ -174,6 +230,7 @@ const hogares = ref([
    text-transform: capitalize;
 
 }
+/* estilos de hogares*/
 
 
 .hogares-header {
@@ -228,8 +285,8 @@ const hogares = ref([
 
 .hogar-icon {
   position: absolute;
-  top: 8px;
-  left: 8px;
+  top: 0px;
+  left: 0px;
   width: 38px;
   height: 38px;
   background: var(--accent-light);
@@ -242,8 +299,8 @@ const hogares = ref([
 
 .hogar-delete {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 0px;
+  right: 0px;
   width: 38px;
   height: 38px;
   border-radius: 8px;
@@ -275,15 +332,21 @@ const hogares = ref([
   align-items: center;
   gap: 6px;
   text-align: center;
-  margin-top: 8px;
+  margin-top: 20px;
 }
 
 .hogar-name {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
   font-size: 1.6rem;
   font-weight: 800;
   line-height: 1.15;
   letter-spacing: -0.02em;
   color: var(--text);
+  max-width: 100%;
+  word-break: break-word;
 }
 
 .hogar-sub {
@@ -294,10 +357,144 @@ const hogares = ref([
 }
 
 .hogar-chevron {
-  position: absolute;
-  bottom: 12px;
-  right: 12px;
-  color: var(--accent);
+   position: relative;
+   margin-top: 10px;
+   color: var(--accent);
 }
+
+.add-home{
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   gap: 8px;
+   width: 100%;
+   padding: 20px;
+   border-radius: 16px;
+   border: 1.5px dashed rgba(63, 81, 181, .4);
+   background: rgba(63, 81, 181, .04);
+   color: #3F51B5;
+   font-size: 1.1rem;
+   font-weight: 700;
+   font-family: inherit;
+   cursor: pointer;
+   transition: background .15s, border-color .15s;
+}
+
+.add-home:hover{
+   background: rgba(63, 81, 181, .11);
+   border: 1.5px dashed rgba(63, 81, 181, .7);
+
+}
+
+/* estilos de recientes*/
+
+.actividad-header{
+   font-size: 1.6rem;
+   font-weight: 800;
+   margin-bottom: 16px;
+   margin-top: 32px;
+   display: flex;
+   align-items: center;
+   gap: 10px;
+   color: var(--text);
+   letter-spacing: -.02em;
+}
+
+.actividad-header svg {
+    width: 22px;
+    height: 22px;
+    color: #3F51B5;
+}
+
+.actividad-lista{
+   display: flex;
+   flex-direction: column;
+   gap: 8px;
+   margin-bottom: 4px;
+   margin: 0;
+   padding: 0;
+   box-sizing: border-box;
+}
+
+.recent-item{
+   display: flex;
+   align-items: center;
+   gap: 14px;
+   padding: 12px 16px;
+   background: var(--surface);
+   border: 1px solid var(--border);
+   border-radius: 12px;
+   box-shadow: 0 1px 3px rgba(0, 0, 0, .03);
+   cursor: pointer;
+   color: black;
+}
+
+.recent-item:hover{
+   /* border: 1px solid var(--border-strong);
+   box-shadow: 0 1px 3px rgba(0, 0, 0, .5); */
+border-color: var(--accent);
+   box-shadow: 0 4px 16px rgba(99, 102, 241, 0.15);
+   transform: translateY(-2px);
+}
+
+.recent-info{
+   flex: 1;
+}
+.recent-device{
+   font-size: 1.15rem;
+   font-weight: 600;
+}
+
+.recent-location{
+   font-size: 0.86rem;
+   font-weight: 400;
+   color: var(--text-muted);
+   margin-top: 1px;
+}
+
+.recent-time{
+   font-size: 0.86rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.recent-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.recent-icon.off {
+  background: var(--surface2);
+  color: var(--text-muted);
+}
+
+.recent-icon.on {
+  background: #E5F5FE;
+  color: #0CA5E9;
+}
+
+.recent-badge {
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.recent-badge.off {
+  background: var(--surface2);
+  color: var(--text-muted);
+}
+
+.recent-badge.on {
+  background: rgba(46, 125, 50, 0.12);
+  color: var(--success);
+}
+
 
 </style>
