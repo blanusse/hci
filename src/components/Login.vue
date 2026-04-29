@@ -284,8 +284,8 @@
                   Volver al inicio de sesión
             </button>
             </div>
-         </div>
-         <div v-else class="auth-form-panel">
+      </div>
+      <div v-else class="auth-form-panel">
             <div class="auth-form-wrap">
                <div class="auth-form-header">
                   <div class="auth-verify-icon">
@@ -332,7 +332,7 @@
                   Volver
                </button>
             </div>
-         </div>
+      </div>
    </div>
 </template>
 
@@ -340,6 +340,7 @@
 import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { apiPost } from '@/utils/api'
+import { useAuthStore } from '@/stores/auth'
 
 const eyeOpen = `<path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/>`
 const eyeClosed = `<path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/>`
@@ -356,6 +357,8 @@ const errorMsg = ref('')
 const name = ref('')
 const repeatPassword = ref('');
 const mostrarPasswordRepeat = ref(false)
+
+const auth = useAuthStore()
 
 // const codigoVerif = ref('') sirve para guardar el codigo que se manda
 const inputCode = ref('')
@@ -377,11 +380,12 @@ async function iniciarSesion() {
          errorMsg.value = data.error.description
       } else {
          // Login exitoso: guardar token y navegar al dashboard
-         localStorage.setItem('token', data.token ?? '')
-         router.push('/Dashboard')
+         auth.setToken(data.token) //guarda el token en la ""base de datos""
+         console.log(data.token)
+         router.push('/Dashboard') //lo mando al dashboard
       }
-   } catch {
-      errorMsg.value = 'No se pudo conectar al servidor. Intentá de nuevo.'
+   } catch (e: any){
+      errorMsg.value = e.response?.data?.error?.description ?? 'No se pudo conectar al servidor.'
    } finally {
       cargando.value = false
    }
@@ -402,8 +406,8 @@ async function registrarse(){
          vista.value = 'verificacion'
          sendVerifMail();
       }
-   } catch {
-      errorMsg.value = 'No se pudo conectar al servidor. Intentá de nuevo.'
+   } catch (e: any){
+      errorMsg.value = e.response?.data?.error?.description ?? 'No se pudo conectar al servidor.'
    }
 }
 
@@ -419,8 +423,8 @@ async function sendVerifMail(){
          // codigoVerif.value=data.code
       }
    }
-   catch{
-      errorMsg.value = 'No se pudo conectar al servidor. Intentá de nuevo.'
+   catch (e: any){
+      errorMsg.value = e.response?.data?.error?.description ?? 'No se pudo conectar al servidor.'
    }
 }
 
@@ -432,12 +436,12 @@ async function verifyCode(){
          errorMsg.value = data.error.description
       } else {
          //se ingreso el codigo correcto
-         // console.log('check')
-         router.push('/Dashboard')
+         console.log('check')
+         vista.value='login' 
       }
    }
-   catch{
-      errorMsg.value = 'No se pudo conectar al servidor. Intentá de nuevo.'
+   catch (e: any){
+      errorMsg.value = e.response?.data?.error?.description ?? 'No se pudo conectar al servidor.'
    }
 }
 
@@ -453,8 +457,8 @@ async function forgotPassword(){
          vista.value = 'cambiarPswrd'
       }
    }
-   catch{
-      errorMsg.value = 'No se pudo conectar al servidor. Intentá de nuevo.'
+   catch (e: any){
+      errorMsg.value = e.response?.data?.error?.description ?? 'No se pudo conectar al servidor.'
    }
 }
 
@@ -473,8 +477,8 @@ async function resetPassword() {
          vista.value = 'login'
       }
    }
-   catch{
-      errorMsg.value = 'No se pudo conectar al servidor. Intentá de nuevo.'
+   catch (e: any){
+      errorMsg.value = e.response?.data?.error?.description ?? 'No se pudo conectar al servidor.'
    }
 }
 
@@ -528,6 +532,8 @@ async function resetPassword() {
    position: relative;
    overflow: hidden;
 }
+
+
 
 .auth-brand-inner {
     position: relative;
@@ -857,3 +863,7 @@ async function resetPassword() {
 }
 
 </style>
+
+
+
+

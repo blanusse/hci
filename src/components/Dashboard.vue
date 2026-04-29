@@ -23,7 +23,7 @@
                <div class="hogar-icon">
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
                </div>
-               <button class="hogar-delete">
+               <button class="hogar-delete" @click="deletes()">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                </button>
                <div class="hogar-main">
@@ -33,7 +33,7 @@
                <svg class="hogar-chevron" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
             </div>
          </div>
-         <button class="add-home">
+         <button class="add-home" @click="createHome('casa campo')">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="plus-circle" aria-hidden="true" class="lucide lucide-plus-circle"><circle cx="12" cy="12" r="10"></circle><path d="M8 12h8"></path><path d="M12 8v8"></path></svg> 
             Agregar hogar 
          </button>
@@ -74,17 +74,52 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { deviceIcons } from '@/utils/deviceIcons'
-import LamparaModal from '@/components/dispositivos/LamparaModal.vue'
+import { getHomes, createHome, getRoomDevices, getRooms, deleteHome } from '@/services/homeService'
+import { connectSocket } from '@/services/socketService'
 
+import LamparaModal from '@/components/dispositivos/LamparaModal.vue'
 
 const temperatura = ref('')
 const clima = ref('')
 
-
-//levanta la hora
 const hora = ref('')
 const horaActual = new Date().getHours() 
 let intervalo: number
+
+
+const hogares = ref([]) //hogares del usuario
+const usuario = ref('')  //nombre del usuario
+
+const socket = connectSocket() //se conecta para recibir señales
+
+async function deletes() {
+   deleteHome(hogares.value[0].id)
+}
+
+socket.on('deviceEvent', (event)=>{
+   console.log(event)
+   actividad.value.unshift(event)
+   if(actividad.value.length > 10){
+      actividad.value.pop()
+   }
+})
+
+async function cargarHogares() {                                                                                                                
+     const data = await getHomes()                                                                                                              
+     for (const hogar of data) {                                                                                                                  
+        const rooms = await getRooms(hogar.id)
+        hogar.rooms = rooms.length
+        let totalDevices = 0
+        for (const room of rooms) {
+           const devices = await getRoomDevices(room.id)
+           totalDevices += devices.length
+        }
+        hogar.devices = totalDevices
+     }
+     hogares.value = data
+  }
+
+//levanta la hora
 onMounted(() => {
    intervalo = setInterval(() => {
       hora.value = new Date().toLocaleTimeString('es-AR', {hour: '2-digit', minute: '2-digit', hour12: false})
@@ -94,23 +129,11 @@ onMounted(() => {
 
 onUnmounted(() => clearInterval(intervalo))
 const fecha = new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long'})    
-// const fecha = fechaRaw.charAt(0).toUpperCase() + fechaRaw.slice(1)
-
 const saludo = horaActual < 12 ? 'Buenos días' : horaActual < 20 ? 'Buenas tardes' : 'Buenas noches'
 
-//levanta la info del usuario para poner el nombre en el cartel de bienvenida
-const usuario = ref('') 
-onMounted(async() => {
-   //TODO: hacer cuando se use la API -> es para levantar el nombre del usuario
-   // const res = await fetch('http://hci.it.itba.edu.ar/api/users/profile', {
-   //    headers: {
-   //       'Content-Type': 'application/json',
-   //       'X-API-KEY': import.meta.env.VITE_API_KEY
-   //    }
-   // })
-   // const data = await res.json()
-   // usuario.value = data.name
 
+onMounted(async() => {
+   await cargarHogares()
    const resClima = await fetch(
    `https://api.openweathermap.org/data/2.5/weather?q=Buenos+Aires&appid=${import.meta.env.VITE_WEATHER_API_KEY}&units=metric&lang=es`
 )
@@ -123,25 +146,10 @@ const dataClima = await resClima.json()
 
 
 //TODO: esta lista dsp va a tener la lista de hogares sacado de la api
-const hogares = ref([      
-    { id: 1, name: 'Casa Cisd asd asdasdasdfsdfsdfsfsdfudad', rooms: 5, devices: 5 },
-    { id: 2, name: 'Casa Pilar', rooms: 6, devices: 6 },
-  ])
 
 
 //TODO: esta lista va a tener los ultimos N dispositivos manipulados que levanta de la api
-const actividad = ref([
-  { id: 1,  nombre: 'Aire acondicionado', hogar: 'Casa Ciudad', habitacion: 'Sala de estar', estado: 'Apagado',   tiempo: 'Hace 3 min',  encendido: false, tipo: 'ac'          },
-  { id: 2,  nombre: 'Luz baño',           hogar: 'Casa Ciudad', habitacion: 'Baño',          estado: 'Apagado',   tiempo: 'Hace 12 min', encendido: false, tipo: 'lampara'      },
-  { id: 3,  nombre: 'Riego automático',   hogar: 'Casa Pilar',  habitacion: 'Jardín',         estado: 'Encendido', tiempo: 'Hace 28 min', encendido: true,  tipo: 'grifo'        },
-  { id: 4,  nombre: 'Horno',              hogar: 'Casa Ciudad', habitacion: 'Cocina',         estado: 'Apagado',   tiempo: 'Hace 1 h',    encendido: false, tipo: 'horno'        },
-  { id: 5,  nombre: 'Parlante',           hogar: 'Casa Pilar',  habitacion: 'Oficina',        estado: 'Encendido', tiempo: 'Hace 2 h',    encendido: true,  tipo: 'parlante'     },
-  { id: 6,  nombre: 'Persiana living',    hogar: 'Casa Ciudad', habitacion: 'Living',         estado: 'Apagado',   tiempo: 'Hace 2 h',    encendido: false, tipo: 'persiana'     },
-  { id: 7,  nombre: 'Puerta principal',   hogar: 'Casa Pilar',  habitacion: 'Entrada',        estado: 'Apagado',   tiempo: 'Hace 3 h',    encendido: false, tipo: 'puerta'       },
-  { id: 8,  nombre: 'Alarma',             hogar: 'Casa Ciudad', habitacion: 'General',        estado: 'Encendido', tiempo: 'Hace 4 h',    encendido: true,  tipo: 'alarma'       },
-  { id: 9,  nombre: 'Heladera',           hogar: 'Casa Pilar',  habitacion: 'Cocina',         estado: 'Encendido', tiempo: 'Hace 5 h',    encendido: true,  tipo: 'heladera'     },
-  { id: 10, nombre: 'Aspiradora',         hogar: 'Casa Ciudad', habitacion: 'Dormitorio',     estado: 'Apagado',   tiempo: 'Hace 6 h',    encendido: false, tipo: 'aspiradora'   },
-])
+const actividad = ref([])
 
 // Modal de dispositivos
 const modalAbierto = ref<typeof actividad.value[0] | null>(null)
