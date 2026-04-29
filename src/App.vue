@@ -1,12 +1,15 @@
 <template>
   <v-app>
     <v-main>
-      <Navbar @brand-click="$router.push('/')"/>
+      <Navbar v-if="route.path !== '/'" @brand-click="$router.push('/dashboard')" />
       <RouterView />
     </v-main>
   </v-app>
 </template>
 
 <script lang="ts" setup>
-  import Navbar from '@/components/Navbar.vue';
+import { useRoute } from 'vue-router'
+import Navbar from '@/components/Navbar.vue'
+
+const route = useRoute()
 </script>
