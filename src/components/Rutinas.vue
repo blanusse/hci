@@ -206,7 +206,7 @@
                 <button class="sch-btn sch-btn--edit" title="Editar">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="ICONS['sliders-horizontal']"></svg>
                 </button>
-                <button class="sch-btn sch-btn--delete" title="Eliminar">
+                <button class="sch-btn sch-btn--delete" title="Eliminar" @click.stop="rutinaAEliminar = rutina">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="ICONS['trash-2']"></svg>
                 </button>
               </div>
@@ -223,6 +223,16 @@
     @close="mostrarNuevaRutina = false"
     @created="onRutinaCreada"
   />
+
+  <ConfirmarEliminarModal
+    v-if="rutinaAEliminar"
+    titulo="Eliminar rutina"
+    :nombre="rutinaAEliminar.nombre"
+    descripcion="Esta rutina se eliminará permanentemente. Esta acción no se puede deshacer."
+    :error="errorEliminar"
+    @confirm="eliminarRutina"
+    @cancel="rutinaAEliminar = null; errorEliminar = ''"
+  />
 </template>
 
 
@@ -232,6 +242,8 @@ import { getHomes, getRooms, getRoomDevices } from "@/services/homeService";
 import { getRoutines } from "@/services/routineService";
 import { manipulateDevice } from "@/services/deviceService";
 import NuevaRutinaModal from "@/components/NuevaRutinaModal.vue";
+import ConfirmarEliminarModal from "@/components/ConfirmarEliminarModal.vue";
+import { deleteRoutine } from "@/services/routineService";
 import { ICONS } from "@/utils/routineIcons";
 
 
@@ -272,6 +284,8 @@ interface Home {
 const hogares = ref<Home[]>([]);
 const generalActiva = ref(true);
 const mostrarNuevaRutina = ref(false);
+const rutinaAEliminar = ref<Rutina | null>(null);
+const errorEliminar = ref('');
 const selectedHomeId = ref<string | null>(null);
 const selectedHome = computed(() =>
   hogares.value.find((h) => h.id === selectedHomeId.value),
@@ -292,6 +306,19 @@ onMounted(async () => {
 
 function onRutinaCreada(nueva: any) {
   rutinas.value.push(mapRutina(nueva));
+}
+
+async function eliminarRutina() {
+  if (!rutinaAEliminar.value) return;
+  const id = rutinaAEliminar.value.id;
+  errorEliminar.value = '';
+  try {
+    if (!id.startsWith('phantom')) await deleteRoutine(id);
+    rutinas.value = rutinas.value.filter(r => r.id !== id);
+    rutinaAEliminar.value = null;
+  } catch (e: any) {
+    errorEliminar.value = e.response?.data?.error?.description ?? 'Error al eliminar la rutina';
+  }
 }
 
 function toggleRutina(rutina: Rutina) {
@@ -776,7 +803,7 @@ async function toggleTodasLasLuces() {
   align-items: center;
   justify-content: center;
   transition:
-    background 0.15s,
+    background-color 0.15s,
     color 0.15s,
     transform 0.1s;
   color: var(--text-muted);

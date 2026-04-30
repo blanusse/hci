@@ -17,6 +17,8 @@
          <p class="confirm-sub">{{ descripcion }}</p>
       </div>
 
+      <p v-if="error" class="confirm-error">{{ error }}</p>
+
       <div class="confirm-footer">
          <button class="btn-cancel" @click="$emit('cancel')">Cancelar</button>
          <button class="btn-delete" @click="$emit('confirm')">
@@ -39,9 +41,11 @@ withDefaults(defineProps<{
    nombre: string
    titulo?: string
    descripcion?: string
+   error?: string
 }>(), {
    titulo: 'Eliminar',
    descripcion: 'Esta acción no se puede deshacer.',
+   error: '',
 })
 defineEmits(['confirm', 'cancel'])
 </script>
@@ -120,4 +124,11 @@ defineEmits(['confirm', 'cancel'])
 }
 
 .btn-delete:hover { background: #c82333; }
+
+.confirm-error {
+   color: #DC3545;
+   font-size: 0.9rem;
+   text-align: center;
+   margin: 8px 0 0;
+}
 </style>
