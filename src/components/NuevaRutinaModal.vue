@@ -189,8 +189,7 @@ async function crearRutina() {
       triggerIcon: tipoTrigger.value === 'manual' ? 'mouse-pointer-2' : 'clock',
       triggerText: buildTriggerText(),
       tipoTrigger: tipoTrigger.value,
-      hora: hora.value,                                       
-      dias: diasSeleccionados.value,
+      ...(tipoTrigger.value === 'scheduled' && { hora: hora.value, dias: diasSeleccionados.value }),
       activa: true,
       acciones: [],
     })

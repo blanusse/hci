@@ -253,6 +253,9 @@ interface Rutina {
   icon: string;
   triggerIcon: string;
   triggerText: string;
+  tipoTrigger: 'scheduled' | 'manual';
+  hora?: string;
+  dias?: string[];
   activa: boolean;
   deshabilitada: boolean;
   acciones: string[];
@@ -269,6 +272,9 @@ function mapRutina(r: any): Rutina {
     icon: m.icon ?? 'clock',
     triggerIcon: m.triggerIcon ?? 'clock',
     triggerText: m.triggerText ?? 'Sin trigger definido',
+    tipoTrigger: m.tipoTrigger ?? 'manual',
+    hora: m.hora,
+    dias: m.dias,
     activa,
     deshabilitada: !activa,
     acciones: m.acciones ?? [],
@@ -330,6 +336,9 @@ async function toggleRutina(rutina: Rutina) {
       icon: rutina.icon,
       triggerIcon: rutina.triggerIcon,
       triggerText: rutina.triggerText,
+      tipoTrigger: rutina.tipoTrigger,
+      hora: rutina.hora,
+      dias: rutina.dias,
       activa: nuevoEstado,
       acciones: rutina.acciones,
     });
