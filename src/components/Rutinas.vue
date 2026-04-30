@@ -320,6 +320,7 @@ const rutinas = ref<Rutina[]>([
 
 function toggleRutina(rutina: Rutina) {
   rutina.activa = !rutina.activa;
+  rutina.deshabilitada = !rutina.activa;
 }
 </script>
 
@@ -532,11 +533,12 @@ function toggleRutina(rutina: Rutina) {
 .toggle {
   display: inline-block;
   position: relative;
-  width: 36px;
-  height: 20px;
-  border-radius: 10px;
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
   background: #cbd5e1;
   transition: background-color 0.2s;
+  margin: 10px auto 0px;
   flex-shrink: 0;
 }
 
@@ -545,8 +547,8 @@ function toggleRutina(rutina: Rutina) {
   position: absolute;
   top: 3px;
   left: 3px;
-  width: 14px;
-  height: 14px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   background: #fff;
   transition: transform 0.2s;
@@ -557,7 +559,7 @@ function toggleRutina(rutina: Rutina) {
 }
 
 .toggle.on::after {
-  transform: translateX(16px);
+  transform: translateX(20px);
 }
 
 .toggle--lg {
@@ -597,8 +599,9 @@ function toggleRutina(rutina: Rutina) {
 }
 
 .rut-group-label svg {
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
+  margin-left: 10px;
 }
 
 .sch-grid {
