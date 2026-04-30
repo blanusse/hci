@@ -25,7 +25,7 @@
       </div>
 
       <div class="field">
-        <label class="field-label">Casa</label>
+        <label class="field-label">Hogar</label>
         <div v-if="!hogares?.length" class="no-homes">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-html="ICONS['house']"></svg>
           No tenés hogares creados.   

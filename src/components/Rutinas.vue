@@ -105,7 +105,7 @@
             <path d="m9 18 6-6-6-6"></path>
           </svg>
         </div>
-        <button class="rut-general-toggle" @click="generalActiva = !generalActiva">
+        <button class="rut-general-toggle" @click="toggleTodasLasLuces()">
           <span class="rut-general-toggle-icon"
             ><svg
               xmlns="http://www.w3.org/2000/svg"
@@ -127,7 +127,7 @@
               <path d="M9 18h6"></path>
               <path d="M10 22h4"></path></svg></span><span class="rut-general-toggle-copy"
             ><span class="rut-general-toggle-text">Todas las luces</span><span class="rut-general-toggle-sub"
-              >3 dispositivos activos</span></span><span class="toggle toggle--lg" :class="{ on: generalActiva }"></span>
+              >Todas las casas</span></span><span class="toggle toggle--lg" :class="{ on: generalActiva }"></span>
         </button>
       </div>
       <!---->
@@ -228,8 +228,9 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
-import { getHomes } from "@/services/homeService";
+import { getHomes, getRooms, getRoomDevices } from "@/services/homeService";
 import { getRoutines } from "@/services/routineService";
+import { manipulateDevice } from "@/services/deviceService";
 import NuevaRutinaModal from "@/components/NuevaRutinaModal.vue";
 import { ICONS } from "@/utils/routineIcons";
 
@@ -296,6 +297,22 @@ function onRutinaCreada(nueva: any) {
 function toggleRutina(rutina: Rutina) {
   rutina.activa = !rutina.activa;
   rutina.deshabilitada = !rutina.activa;
+}
+
+async function toggleTodasLasLuces() {
+  generalActiva.value = !generalActiva.value;
+  const accion = generalActiva.value ? 'turnOn' : 'turnOff';
+  for (const hogar of hogares.value) {
+    const rooms = await getRooms(hogar.id);
+    for (const room of rooms) {
+      const devices = await getRoomDevices(room.id);
+      for (const device of devices) {
+        if (device.type?.name === 'lamp') {
+          manipulateDevice(device.id, accion, []).catch(() => {});
+        }
+      }
+    }
+  }
 }
 </script>
 
