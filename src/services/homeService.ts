@@ -48,10 +48,11 @@ export async function deleteRoomFromHome(roomId: string){
 
 
 
+export async function shareHome(homeId: string, emails: string[]) {
+   return await apiPost(`/homes/${homeId}/share`, { emails })
+}
 
 
 
 //faltan mas funciones de la API
-
-
 
