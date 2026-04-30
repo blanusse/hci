@@ -3,9 +3,9 @@
   <nav class="navbar">
     <button class="navbar-brand" @click="$emit('brand-click')">
       <div class="brand-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
-          <polyline points="9 22 9 12 15 12 15 22"/>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
+          <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
         </svg>
       </div>
       <span class="brand-name">SmartHome</span>
@@ -101,24 +101,24 @@ const notifications = ref(0)
   color: #6366F1;
   background: transparent;
   border: none;
-  padding: 0.4rem 0.9rem;
+  padding: 4px 8px;;
   cursor: pointer;
   border-radius: 8px;
-  transition: background 0.15s, color 0.15s;
+  transition: background-color 0.15s, color 0.15s;
 }
 
 
 
 .brand-icon {
-  width: 34px;
-  height: 34px;
-  background: #6366F1;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  transition: background 0.15s;
+      width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgb(255, 255, 255);
+    flex-shrink: 0;
+    background: var(--accent);
+    border-radius: 50%;
 }
 
 .navbar-brand:hover {
