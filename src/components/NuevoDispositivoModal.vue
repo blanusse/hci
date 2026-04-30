@@ -102,7 +102,7 @@ const deviceTypes = [
    { key: 'ac',           label: 'Aire acond.',    icon: deviceIcons['ac'] },
    { key: 'speaker',      label: 'Parlante',       icon: deviceIcons['speaker'] },
    { key: 'faucet',       label: 'Grifo/Aspersor', icon: deviceIcons['faucet'] },
-   { key: 'blind',        label: 'Persiana',       icon: deviceIcons['blind'] },
+   { key: 'blinds',        label: 'Persiana',       icon: deviceIcons['blinds'] },
    { key: 'door',         label: 'Puerta',         icon: deviceIcons['door'] },
    { key: 'alarm',        label: 'Alarma',         icon: deviceIcons['alarm'] },
    { key: 'oven',         label: 'Horno',          icon: deviceIcons['oven'] },

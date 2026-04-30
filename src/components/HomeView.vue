@@ -53,11 +53,11 @@
                <div
                   v-for="device in room.devices"
                   :key="device.id"
-                  class="hd-device-row"
+                  class="hd-device-row" @click="abrirDispositivo(device)"
                   :class="{ on: device.state?.status === 'on' }"
                >
                   <div class="hd-device-icon">
-                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-html="deviceIcons[device.type] ?? deviceIcons['lamp']">
+                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-html="deviceIcons[device.type?.name] ?? deviceIcons['lamp']">
                      </svg>
                   </div>
                   <div class="hd-device-info">
@@ -66,7 +66,7 @@
                         {{ device.state?.status === 'on' ? 'Encendido' : 'Apagado' }}
                      </span>
                   </div>
-                  <button class="hd-delete-btn" @click.stop>
+                  <button class="delete-btn" @click.stop="borrarDispositivo(device)" >
                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M10 11v6"/><path d="M14 11v6"/>
                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
@@ -94,15 +94,24 @@
      @close="mostrarNuevoDispositivo = false"
      @created="cargarRooms()"
   />
+
+  <component
+     :is="modalesPorTipo[dispositivoAbierto?.type?.name]"
+     v-if="dispositivoAbierto && modalesPorTipo[dispositivoAbierto?.type?.name]"
+     :device="dispositivoAbierto"
+     @close="dispositivoAbierto = null"
+     @update:state="dispositivoAbierto.state.status = $event" 
+  />
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { getRooms, getRoomDevices, getHome } from '@/services/homeService'
-import { getDeviceTypeId} from '@/services/deviceService'
 import { deviceIcons } from '@/utils/deviceIcons'
 import NuevoDispositivoModal from '@/components/NuevoDispositivoModal.vue'
+import LamparaModal from '@/components/dispositivos/LamparaModal.vue'
+import { getDeviceTypeName, deleteDevice } from '@/services/deviceService'
 
 const route = useRoute()
 const homeId = route.params.id as string
@@ -111,6 +120,16 @@ const rooms = ref<any[]>([])
 
 const mostrarNuevoDispositivo = ref(false)
 const roomParaDispositivo = ref('')
+
+const dispositivoAbierto = ref<any>(null)
+const modalesPorTipo: Record<string, any> = {
+   lamp: LamparaModal,
+}
+
+function abrirDispositivo(device: any) {                                                                                                                                
+     console.log('device:', device)
+     dispositivoAbierto.value = device
+  }
 
 onMounted(async () => {
    const home = await(getHome(homeId))
@@ -122,13 +141,26 @@ async function cargarRooms() {
    const rawRooms = await getRooms(homeId)
    for (const room of rawRooms) {
       room.devices = await getRoomDevices(room.id)
+      for (const device of room.devices) {
+         device.type.name = await getDeviceTypeName(device.type.id)
+      }  
    }
    rooms.value = rawRooms
 }
+
+async function borrarDispositivo(device: any){
+   await deleteDevice(device.id)
+   await cargarRooms()
+}
+
 </script>
 
 <style scoped>
-.home-view { padding: clamp(1rem, 4vw, 3rem); max-width: 1200px; margin: 0 auto; }
+.home-view {
+   padding: clamp(1rem, 4vw, 3rem);
+   max-width: 1200px;
+   margin: 0 auto;
+}
 
 .hd-header {
    display: flex;
@@ -309,7 +341,9 @@ async function cargarRooms() {
    cursor: pointer;
    transition: border-color 0.15s;
 }
-.hd-device-row:hover { border-color: var(--accent); }
+.hd-device-row:hover {
+   border-color: var(--accent);
+}
 
 .hd-device-icon {
    width: 32px;
@@ -322,7 +356,10 @@ async function cargarRooms() {
    color: var(--text-muted);
    flex-shrink: 0;
 }
-.hd-device-row.on .hd-device-icon { background: #E5F5FE; color: #0CA5E9; }
+.hd-device-row.on .hd-device-icon {
+   background: #E5F5FE;
+   color: #0CA5E9;
+}
 
 .hd-device-info {
    flex: 1;
@@ -351,13 +388,13 @@ async function cargarRooms() {
    border: none;
    color: var(--text-muted);
    cursor: pointer;
-   padding: 4px;
+   padding: 8px;
    border-radius: 6px;
    display: flex;
    align-items: center;
    transition: color 0.15s, background 0.15s;
 }
-.hd-delete-btn:hover { color: var(--danger); background: var(--danger-light); }
+/* .hd-delete-btn:hover { color: var(--danger); background: var(--danger-light); } */
 
 .hd-add-device-btn {
    display: flex;

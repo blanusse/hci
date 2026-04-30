@@ -49,3 +49,15 @@ export async function apiDelete(ruta :string) {
       throw e
    }
 }
+
+export async function apiPatch(ruta :string, params: any[] = []) {
+   try{
+      const res = await api.patch(ruta, params)
+      return res.data
+   }
+   catch(e: any){
+      console.error(`PATCH ${ruta}:`, e.response?.data ?? e.message)
+      throw e
+   }
+}
+

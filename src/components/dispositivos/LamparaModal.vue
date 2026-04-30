@@ -5,7 +5,7 @@
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-html="deviceIcons['lamp']"></svg>
          </div>
          <div>
-            <div class="dev-name">{{ nombre }}</div>
+            <div class="dev-name">{{ device.name }}</div>
             <div class="dev-status">{{ encendido ? 'Encendido' : 'Apagado' }}</div>
          </div>
       </template>
@@ -68,15 +68,14 @@
 import { ref } from 'vue'
 import DeviceModal from '../DeviceModal.vue'
 import { deviceIcons } from '@/utils/deviceIcons'
+import { manipulateDevice } from '@/services/deviceService';
 
 const props = defineProps<{
-   nombre: string
-   deviceId: string | number
-   encendidoInicial?: boolean
+   device: any
 }>()
-defineEmits(['close'])
+const emit = defineEmits(['close', 'update:state'])
 
-const encendido = ref(props.encendidoInicial ?? false)
+const encendido = ref(props.device.state?.status === 'on')
 const intensidad = ref(80)
 const colorSeleccionado = ref('Blanca')
 const colorPersonalizado = ref('#ffffff')
@@ -92,26 +91,31 @@ const swatches = [
 
 function encender() {
    encendido.value = true
-   // TODO: PATCH /api/devices/${props.deviceId}/turnOn
+   manipulateDevice(props.device.id, 'turnOn', [])
+   emit('update:state', 'on')
 }
 
 function apagar() {
    encendido.value = false
-   // TODO: PATCH /api/devices/${props.deviceId}/turnOff
+   emit('update:state', 'off')
+   manipulateDevice(props.device.id, 'turnOff')
+
 }
 
 function onIntensidadChange() {
-   // TODO: PATCH /api/devices/${props.deviceId}/setBrightness  { value: intensidad.value }
+   return manipulateDevice(props.device.id, 'setBrightness', [intensidad])
+
 }
 
 function seleccionarColor(s: { label: string; hex: string }) {
    colorSeleccionado.value = s.label
-   // TODO: PATCH /api/devices/${props.deviceId}/setColor  { color: s.hex }
+   return manipulateDevice(props.device.id, 'setColor', [colorSeleccionado.value])
+
 }
 
 function onColorPersonalizado() {
    colorSeleccionado.value = 'Personalizar'
-   // TODO: PATCH /api/devices/${props.deviceId}/setColor  { color: colorPersonalizado.value }
+   return manipulateDevice(props.device.id, 'setColor', [colorPersonalizado.value])
 }
 </script>
 

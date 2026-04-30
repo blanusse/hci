@@ -24,7 +24,7 @@
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-html="hogar.metadata?.icon || defaultHouseIcon">
                   </svg>
                </div>
-               <button class="hogar-delete" @click.stop="hogarAEliminar = hogar">
+               <button class="delete-btn" @click.stop="hogarAEliminar = hogar">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                </button>
                <div class="hogar-main">
@@ -73,7 +73,7 @@
    v-if="mostrarNuevoHogar"
    @close="mostrarNuevoHogar=false"
    @created="cargarHogares()"/>
-   
+
    <ConfirmarEliminarModal
    v-if="hogarAEliminar"
    :nombre="hogarAEliminar.name"
@@ -333,35 +333,7 @@ function abrirModal(item: typeof actividad.value[0]) {
   color: var(--accent);
 }
 
-.hogar-delete {
-  position: absolute;
-  top: 0px;
-  right: 0px;
-  width: 38px;
-  height: 38px;
-  border-radius: 8px;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-muted);
-  transition: background 0.15s, color 0.15s;
-}
-.hogares-delete svg {
-    width: 14px;
-    background-color: transparent;
-    height: 14px;
-}
 
-
-
-
-.hogar-delete:hover{
-   background-color: var(--danger-light);
-   color: var(--danger);
-}
 
 .hogar-main {
   display: flex;
@@ -397,6 +369,12 @@ function abrirModal(item: typeof actividad.value[0]) {
    position: relative;
    margin-top: 10px;
    color: var(--accent);
+}
+
+.delete-btn{
+   position: absolute;
+  top: 0px;
+  right: 0px;
 }
 
 
