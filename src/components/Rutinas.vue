@@ -105,7 +105,7 @@
             <path d="m9 18 6-6-6-6"></path>
           </svg>
         </div>
-        <button class="rut-general-toggle">
+        <button class="rut-general-toggle" @click="generalActiva = !generalActiva">
           <span class="rut-general-toggle-icon"
             ><svg
               xmlns="http://www.w3.org/2000/svg"
@@ -127,7 +127,7 @@
               <path d="M9 18h6"></path>
               <path d="M10 22h4"></path></svg></span><span class="rut-general-toggle-copy"
             ><span class="rut-general-toggle-text">Todas las luces</span><span class="rut-general-toggle-sub"
-              >3 dispositivos activos</span></span><span class="toggle toggle--lg on"></span>
+              >3 dispositivos activos</span></span><span class="toggle toggle--lg" :class="{ on: generalActiva }"></span>
         </button>
       </div>
       <!---->
@@ -176,7 +176,8 @@
               <div
                 class="toggle"
                 :class="{ on: rutina.activa }"
-                style="flex-shrink: 0; margin-left: 4px"
+                style="flex-shrink: 0; margin-left: 4px; cursor: pointer"
+                @click.stop="toggleRutina(rutina)"
               ></div>
             </div>
             <div class="sch-actions-chips">
@@ -265,6 +266,7 @@ interface Home {
 }
 
 const hogares = ref<Home[]>([]);
+const generalActiva = ref(true);
 const selectedHomeId = ref<string | null>(null);
 const selectedHome = computed(() =>
   hogares.value.find((h) => h.id === selectedHomeId.value),
@@ -315,11 +317,15 @@ const rutinas = ref<Rutina[]>([
     ultimaEjecucion: "Hace 2 días",
   },
 ]);
+
+function toggleRutina(rutina: Rutina) {
+  rutina.activa = !rutina.activa;
+}
 </script>
 
 <style scoped>
 .section-title {
-  font-size: 1.7188rem;
+  font-size: 1.65rem;
   font-weight: 800;
   color: var(--text);
   margin-top: 0;
@@ -348,10 +354,7 @@ const rutinas = ref<Rutina[]>([
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
-  transition:
-    background 0.15s,
-    transform 0.1s,
-    box-shadow 0.15s;
+  transition: background-color 0.15s, transform 0.1s, box-shadow 0.15s;
   white-space: nowrap;
   box-shadow: 0 2px 8px rgba(26, 35, 126, 0.25);
 }
@@ -526,6 +529,37 @@ const rutinas = ref<Rutina[]>([
   font-weight: 600;
 }
 
+.toggle {
+  display: inline-block;
+  position: relative;
+  width: 36px;
+  height: 20px;
+  border-radius: 10px;
+  background: #cbd5e1;
+  transition: background-color 0.2s;
+  flex-shrink: 0;
+}
+
+.toggle::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s;
+}
+
+.toggle.on {
+  background: #10b981;
+}
+
+.toggle.on::after {
+  transform: translateX(16px);
+}
+
 .toggle--lg {
   width: 44px;
   height: 24px;
@@ -617,7 +651,7 @@ const rutinas = ref<Rutina[]>([
   justify-content: center;
   flex-shrink: 0;
   transition:
-    background 0.2s,
+    background-color 0.2s,
     border-color 0.2s;
 }
 
