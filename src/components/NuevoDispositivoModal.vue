@@ -61,6 +61,7 @@
             </div>
          </div>
       </div>
+      <p v-if="errorMsg" class="auth-error">{{ errorMsg }}</p>
 
       <!-- Footer -->
       <div class="modal-footer">
@@ -88,9 +89,8 @@ const props = defineProps<{
 const emit = defineEmits(['close', 'created'])
 
 const nombre = ref('')
-const marca = ref('')
-const consumo = ref('')
-const modelo = ref('')
+const errorMsg = ref('')
+
 const tipoSeleccionado = ref('')
 const hogarSeleccionado = ref(props.defaultHomeId)
 const cuartoSeleccionado = ref(props.defaultRoomId)
@@ -116,6 +116,11 @@ async function onHogarChange() {
 }
 
 async function agregar() {
+   if(nombre.value.trim().length < 3){
+      errorMsg.value = 'El nombre debe tener al menos 3 caracteres'
+      return
+   }
+   errorMsg.value=''
    const typeId = await getDeviceTypeId(tipoSeleccionado.value)
    console.log('typeId:', typeId, 'tipo:', tipoSeleccionado.value)
    await newDeviceInRoom(
