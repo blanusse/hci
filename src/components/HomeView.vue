@@ -35,7 +35,7 @@
          </button>
 
          <!-- Room cards -->
-         <div v-for="room in rooms" :key="room.id" class="hd-room-card">
+         <div v-for="room in rooms" :key="room.id" class="hd-room-card" @dragover.prevent @drop="onDrop(room)">
 
             <div class="hd-room-header">
                <div class="hd-room-icon">
@@ -51,21 +51,31 @@
                <p v-if="!room.devices?.length" class="hd-room-empty">Sin dispositivos</p>
 
                <div
-                  v-for="device in room.devices"
+                  v-for="device in room.devices" draggable="true"
                   :key="device.id"
-                  class="hd-device-row" @click="abrirDispositivo(device)"
+                  class="hd-device-row" @click="abrirDispositivo(device)" @dragstart="onDragStart(device)"
                   :class="{ on: device.state?.status === 'on' }"
                >
+               <div class="drag-handle">                                           
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                     <circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/>
+                     <circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/>
+                     <circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/>
+                  </svg>
+               </div>
                   <div class="hd-device-icon">
                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-html="deviceIcons[device.type?.name] ?? deviceIcons['lamp']">
                      </svg>
                   </div>
                   <div class="hd-device-info">
                      <span class="hd-device-name">{{ device.name }}</span>
-                     <span class="hd-device-state" :class="device.state?.status === 'on' ? 'state-on' : 'state-off'">
-                        {{ device.state?.status === 'on' ? 'Encendido' : 'Apagado' }}
-                     </span>
                   </div>
+                  <button
+                     class="device-toggle" :class="{ on: device.state?.status === 'on' }"
+                     @click.stop="toggleDevice(device)"
+                  >
+                     <span class="toggle-knob"></span>
+                  </button>
                   <button class="delete-btn" @click.stop="borrarDispositivo(device)" >
                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M10 11v6"/><path d="M14 11v6"/>
@@ -95,11 +105,18 @@
      @created="cargarRooms()"
   />
 
+  <ConfirmarEliminarModal
+     v-if="dispositivoAEliminar"
+     :nombre="dispositivoAEliminar.name"
+     @confirm="confirmarBorrarDispositivo()"
+     @cancel="dispositivoAEliminar = null"
+  />
+
   <component
      :is="modalesPorTipo[dispositivoAbierto?.type?.name]"
      v-if="dispositivoAbierto && modalesPorTipo[dispositivoAbierto?.type?.name]"
      :device="dispositivoAbierto"
-     @close="dispositivoAbierto = null"
+     @close="dispositivoAbierto = null; cargarRooms()"
      @update:state="dispositivoAbierto.state.status = $event" 
   />
 </template>
@@ -111,7 +128,8 @@ import { getRooms, getRoomDevices, getHome } from '@/services/homeService'
 import { deviceIcons } from '@/utils/deviceIcons'
 import NuevoDispositivoModal from '@/components/NuevoDispositivoModal.vue'
 import LamparaModal from '@/components/dispositivos/LamparaModal.vue'
-import { getDeviceTypeName, deleteDevice } from '@/services/deviceService'
+import ConfirmarEliminarModal from './ConfirmarEliminarModal.vue'
+import { getDeviceTypeName, deleteDevice, moverDevice, manipulateDevice } from '@/services/deviceService'
 
 const route = useRoute()
 const homeId = route.params.id as string
@@ -124,6 +142,27 @@ const roomParaDispositivo = ref('')
 const dispositivoAbierto = ref<any>(null)
 const modalesPorTipo: Record<string, any> = {
    lamp: LamparaModal,
+}
+
+const dispositivoAEliminar = ref<any>(null)
+
+
+const deviceArrastrado = ref<any>(null)
+function onDragStart(device: any){
+   deviceArrastrado.value = device
+}
+
+async function onDrop(roomDestino: any){
+   if(!deviceArrastrado.value) return
+   await moverDevice(deviceArrastrado.value.id, roomDestino.id)
+   deviceArrastrado.value = null
+   await cargarRooms()
+}
+
+async function toggleDevice(device: any) {
+   const action = device.state?.status === 'on' ? 'turnOff' : 'turnOn'
+   await manipulateDevice(device.id, action)
+   device.state.status = action === 'turnOn' ? 'on' : 'off'
 }
 
 function abrirDispositivo(device: any) {                                                                                                                                
@@ -149,7 +188,12 @@ async function cargarRooms() {
 }
 
 async function borrarDispositivo(device: any){
-   await deleteDevice(device.id)
+   dispositivoAEliminar.value = device
+}
+
+async function confirmarBorrarDispositivo(){
+   await deleteDevice(dispositivoAEliminar.value.id)
+   dispositivoAEliminar.value = null
    await cargarRooms()
 }
 
@@ -345,6 +389,18 @@ async function borrarDispositivo(device: any){
    border-color: var(--accent);
 }
 
+.drag-handle{
+     color: var(--text);
+     opacity: 0.4;
+     cursor: grab;
+     display: flex;
+     align-items: center;
+}
+
+.hd-device-row:hover .drag-handle {
+   opacity: 1;
+}
+
 .hd-device-icon {
    width: 32px;
    height: 32px;
@@ -360,6 +416,20 @@ async function borrarDispositivo(device: any){
    background: #E5F5FE;
    color: #0CA5E9;
 }
+
+.device-toggle {
+   width: 42px; height: 24px; border-radius: 12px;
+   border: none; background: var(--border); cursor: pointer;
+   position: relative; transition: background 0.2s; flex-shrink: 0;
+}
+.device-toggle.on { background: var(--accent); }
+.toggle-knob {
+   position: absolute; top: 3px; left: 3px;
+   width: 18px; height: 18px; border-radius: 50%;
+   background: white; transition: transform 0.2s;
+   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.device-toggle.on .toggle-knob { transform: translateX(18px); }
 
 .hd-device-info {
    flex: 1;

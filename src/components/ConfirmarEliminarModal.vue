@@ -2,7 +2,7 @@
    <DeviceModal @close="$emit('cancel')">
 
       <template #header>
-         <span class="modal-title">Eliminar hogar</span>
+         <span class="modal-title">{{ titulo }}</span>
       </template>
 
       <div class="confirm-body">
@@ -14,7 +14,7 @@
             </svg>
          </div>
          <p class="confirm-title">¿Eliminar <strong>{{ nombre }}</strong>?</p>
-         <p class="confirm-sub">Se eliminarán todos sus cuartos y dispositivos. Esta acción no se puede deshacer.</p>
+         <p class="confirm-sub">{{ descripcion }}</p>
       </div>
 
       <div class="confirm-footer">
@@ -35,7 +35,14 @@
 <script setup lang="ts">
 import DeviceModal from './DeviceModal.vue'
 
-defineProps<{ nombre: string }>()
+withDefaults(defineProps<{
+   nombre: string
+   titulo?: string
+   descripcion?: string
+}>(), {
+   titulo: 'Eliminar',
+   descripcion: 'Esta acción no se puede deshacer.',
+})
 defineEmits(['confirm', 'cancel'])
 </script>
 

@@ -11,7 +11,7 @@
       </template>
 
       <!-- Preview -->
-      <div class="lamp-preview" :class="encendido ? 'on' : 'off'">
+      <div class="lamp-preview" :style="previewStyle">
          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" v-html="deviceIcons['lamp']"></svg>
       </div>
 
@@ -53,19 +53,19 @@
          </button>
 
          <!-- Custom color picker -->
-         <label class="swatch swatch-custom" :class="{ selected: colorSeleccionado === 'Personalizar' }" title="Personalizar">
+         <label class="swatch swatch-custom" :class="{ selected: colorSeleccionado === 'Personalizar' }" :style="colorSeleccionado === 'Personalizar' ? { background: colorPersonalizado } : {}" title="Personalizar">
             <input type="color" v-model="colorPersonalizado" @change="onColorPersonalizado" style="display:none" />
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-               <circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+               <circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20"/><path d="M12 2v20M2 12h20" opacity=".3"/>
             </svg>
-            <span class="swatch-label">Personalizar</span>
+            <span class="swatch-label">Custom</span>
          </label>
       </div>
    </DeviceModal>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import DeviceModal from '../DeviceModal.vue'
 import { deviceIcons } from '@/utils/deviceIcons'
 import { manipulateDevice } from '@/services/deviceService';
@@ -76,9 +76,18 @@ const props = defineProps<{
 const emit = defineEmits(['close', 'update:state'])
 
 const encendido = ref(props.device.state?.status === 'on')
-const intensidad = ref(80)
-const colorSeleccionado = ref('Blanca')
+const intensidad = ref(props.device.state?.brightness ?? 80)
+const colorSeleccionado = ref(props.device.state?.color ?? 'Blanca')
 const colorPersonalizado = ref('#ffffff')
+
+const previewStyle = computed(() => {
+   if (!encendido.value) return { background: 'var(--surface2)', color: 'var(--text-muted)' }
+   const baseColor = colorSeleccionado.value === 'Personalizar'
+      ? colorPersonalizado.value
+      : swatches.find(s => s.label === colorSeleccionado.value)?.color ?? '#FFF8DC'
+   const alpha = Math.round((intensidad.value / 100) * 255).toString(16).padStart(2, '0')
+   return { background: baseColor + alpha, color: '#F59E0B' }
+})
 
 const swatches = [
    { label: 'Blanca',   color: '#FFFFFF', hex: '#FFFFFF' },
@@ -103,7 +112,7 @@ function apagar() {
 }
 
 function onIntensidadChange() {
-   return manipulateDevice(props.device.id, 'setBrightness', [intensidad])
+   return manipulateDevice(props.device.id, 'setBrightness', [parseInt(intensidad.value)])
 
 }
 
@@ -234,8 +243,10 @@ function onColorPersonalizado() {
 }
 
 .swatch-custom {
-   background: conic-gradient(red, yellow, lime, cyan, blue, magenta, red);
-   color: white;
+   background: var(--surface2);
+   color: var(--text-muted);
+   border-style: dashed;
 }
-.swatch-custom .swatch-label { color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+.swatch-custom.selected { color: white; }
+.swatch-custom.selected .swatch-label { color: white; }
 </style>

@@ -47,6 +47,11 @@ export async function newDeviceInRoom(name: string, type: Object, room: Object) 
    return await apiPost('/devices', {name, type, room, metadata: {}})
 }
 
+export async function moverDevice(deviceId: string, roomDestinoId: string){
+   await apiDelete(`/rooms/devices/${deviceId}`)
+   await apiPost(`/rooms/${roomDestinoId}/devices/${deviceId}`, {})
+}
+
 
 
 
