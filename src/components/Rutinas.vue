@@ -239,11 +239,10 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { getHomes, getRooms, getRoomDevices } from "@/services/homeService";
-import { getRoutines } from "@/services/routineService";
+import { getRoutines, updateRoutine, deleteRoutine } from "@/services/routineService";
 import { manipulateDevice } from "@/services/deviceService";
 import NuevaRutinaModal from "@/components/NuevaRutinaModal.vue";
 import ConfirmarEliminarModal from "@/components/ConfirmarEliminarModal.vue";
-import { deleteRoutine } from "@/services/routineService";
 import { ICONS } from "@/utils/routineIcons";
 
 
@@ -313,7 +312,7 @@ async function eliminarRutina() {
   const id = rutinaAEliminar.value.id;
   errorEliminar.value = '';
   try {
-    if (!id.startsWith('phantom')) await deleteRoutine(id);
+    await deleteRoutine(id);
     rutinas.value = rutinas.value.filter(r => r.id !== id);
     rutinaAEliminar.value = null;
   } catch (e: any) {
@@ -321,9 +320,22 @@ async function eliminarRutina() {
   }
 }
 
-function toggleRutina(rutina: Rutina) {
-  rutina.activa = !rutina.activa;
-  rutina.deshabilitada = !rutina.activa;
+async function toggleRutina(rutina: Rutina) {
+  const nuevoEstado = !rutina.activa;
+  rutina.activa = nuevoEstado;
+  rutina.deshabilitada = !nuevoEstado;
+  try {
+    await updateRoutine(rutina.id, rutina.nombre, [], {
+      icon: rutina.icon,
+      triggerIcon: rutina.triggerIcon,
+      triggerText: rutina.triggerText,
+      activa: nuevoEstado,
+      acciones: rutina.acciones,
+    });
+  } catch (e) {
+    rutina.activa = !nuevoEstado;
+    rutina.deshabilitada = nuevoEstado;
+  }
 }
 
 async function toggleTodasLasLuces() {

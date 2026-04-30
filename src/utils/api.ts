@@ -51,6 +51,17 @@ export async function apiDelete(ruta :string) {
    }
 }
 
+export async function apiPut(ruta: string, body: object) {
+   try{
+      const res = await api.put(ruta, body)
+      return res.data
+   }
+   catch(e: any){
+      console.error(`PUT ${ruta}:`, e.response?.data ?? e.message)
+      throw e
+   }
+}
+
 export async function apiPatch(ruta :string, params: any[] = []) {
    try{
       const res = await api.patch(ruta, params)
