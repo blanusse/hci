@@ -757,15 +757,7 @@ async function resetPassword() {
 }
 
 
-.auth-error {
-   background: var(--danger-light);
-   color: var(--danger);
-   border-radius: 10px;
-   padding: 10px 14px;
-   font-size: 0.95rem;
-   font-weight: 600;
-   margin: 0;
-}
+
 
 .auth-btn-primary:disabled {
    opacity: 0.6;

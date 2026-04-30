@@ -66,7 +66,7 @@ const notifications = ref(0)
   display: flex;
   align-items: center;
   gap: 2rem;
-  padding: 0 2rem;
+  padding: 0px 24px;
   height: 60px;
   background: white;
   border-bottom: 1px solid #e5e8f0;
