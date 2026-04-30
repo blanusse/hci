@@ -44,12 +44,15 @@ export async function getDeviceType(deviceType: string){
    return await apiGet(`devicetypes/${id}`)
 }
 
+export async function getDeviceLogs(limit: number, offset:number) {
+   return await apiGet(`/devices/logs/limit/${limit}/offset/${offset}`)
+}
+
 
 
 //creators
-export async function newDeviceInRoom(name: string, type: Object, room: Object) {
-   console.log('body:', {name, type, room, metadata: {}}) 
-   return await apiPost('/devices', {name, type, room, metadata: {}})
+export async function newDeviceInRoom(name: string, type: Object, room: Object, metadata: object={}) {
+   return await apiPost('/devices', {name, type, room, metadata})
 }
 
 export async function moverDevice(deviceId: string, roomDestinoId: string){

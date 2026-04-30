@@ -60,14 +60,13 @@
       </div>
    </div>
 
-   <!-- Modales de dispositivos -->
-   <LamparaModal
-      v-if="modalAbierto?.tipo === 'lampara'"
-      :nombre="modalAbierto.nombre"
-      :device-id="modalAbierto.id"
-      :encendido-inicial="modalAbierto.encendido"
-      @close="modalAbierto = null"
-   />
+
+   <DeviceModalRouter       
+     v-if="dispositivoAbierto"       
+     :device="dispositivoAbierto"                             
+     @close="dispositivoAbierto = null; cargarActividad()"
+     @update:state="dispositivoAbierto.state.status = $event"
+  />
 
    <NuevoHogarModal 
    v-if="mostrarNuevoHogar"
@@ -82,6 +81,7 @@
    @confirm="borrarHogar(hogarAEliminar.id); hogarAEliminar = null"
    @cancel="hogarAEliminar=null"
    />
+
 </template>
 
 
@@ -90,12 +90,14 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { deviceIcons } from '@/utils/deviceIcons'
 import { getHomes, createHome, getRoomDevices, getRooms, deleteHome } from '@/services/homeService'
+import { getDeviceLogs, getDevice, getDeviceTypeName } from '@/services/deviceService'
 import { getUserInfo } from '@/services/userService'
 import { connectSocket } from '@/services/socketService'
 
 import LamparaModal from '@/components/dispositivos/LamparaModal.vue'
 import NuevoHogarModal from './NuevoHogarModal.vue'
 import ConfirmarEliminarModal from './ConfirmarEliminarModal.vue'
+import DeviceModalRouter from '@/components/dispositivos/DeviceModalRouter.vue'
 
 const temperatura = ref('')
 const clima = ref('')
@@ -154,9 +156,40 @@ async function borrarHogar(id: string){
    await cargarHogares()
 }
 
+async function cargarActividad() {
+     const logs = await getDeviceLogs(20, 0)
+     const seen = new Set<string>()
+     const uniqueLogs: any[] = []
+     for (const log of logs) {
+        if (!seen.has(log.deviceId)) {
+           seen.add(log.deviceId)
+           uniqueLogs.push(log)
+        }
+     }
+     actividad.value = await Promise.all(uniqueLogs.slice(0, 10).map(async (log: any) => {
+        const device = await getDevice(log.deviceId)
+        const tipoNombre = await getDeviceTypeName(device.type.id)
+        const encendido = log.actionName !== 'turnOff'
+        const estado = log.actionName === 'turnOn' ? 'Encendido'
+                     : log.actionName === 'turnOff' ? 'Apagado'
+                     : log.actionName
+        return {
+           id: log.id,
+           nombre: device.name,
+           tipo: tipoNombre,
+           habitacion: device.metadata?.roomName ?? '—',
+           hogar: device.metadata?.homeName ?? '—',
+           encendido,
+           estado,
+           tiempo: tiempoRelativo(log.timestamp),
+           deviceObj: { ...device, type: { ...device.type, name: tipoNombre } }
+        }
+     }))
+  }
 
 //levanta la hora
 onMounted(() => {
+   cargarActividad()
    intervalo = setInterval(() => {
       hora.value = new Date().toLocaleTimeString('es-AR', {hour: '2-digit', minute: '2-digit', hour12: false})
    }, 1000)
@@ -180,16 +213,26 @@ const dataClima = await resClima.json()
 })
 
 
+function tiempoRelativo(timestamp: string): string {
+     const mins = Math.floor((Date.now() - new Date(timestamp).getTime()) / 60000)
+     if (mins < 1) return 'Ahora'
+     if (mins < 60) return `Hace ${mins} min`
+     const hrs = Math.floor(mins / 60)
+     if (hrs < 24) return `Hace ${hrs} h`
+     return `Hace ${Math.floor(hrs / 24)} d`
+}
 
 
 
-//TODO: esta lista va a tener los ultimos N dispositivos manipulados que levanta de la api
 const actividad = ref<any[]>([])
 
 // Modal de dispositivos
-const modalAbierto = ref<typeof actividad.value[0] | null>(null)
-function abrirModal(item: typeof actividad.value[0]) {
-   modalAbierto.value = item
+const dispositivoAbierto = ref<typeof actividad.value[0] | null>(null)
+
+function abrirModal(item: any) {
+   console.log('item:', item)
+   console.log('deviceObj:', item.deviceObj)
+   dispositivoAbierto.value = item.deviceObj
 }
 </script>
 

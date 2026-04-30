@@ -122,11 +122,15 @@ async function agregar() {
    }
    errorMsg.value=''
    const typeId = await getDeviceTypeId(tipoSeleccionado.value)
-   console.log('typeId:', typeId, 'tipo:', tipoSeleccionado.value)
+   const metadata = {
+      homeName: hogares.value.find(h => h.id == hogarSeleccionado.value)?.name ?? '',
+      roomName: cuartos.value.find(r => r.id === cuartoSeleccionado.value)?.name ?? ''
+   }
    await newDeviceInRoom(
       nombre.value.trim(),
       { id: typeId },
-      { id: cuartoSeleccionado.value }
+      { id: cuartoSeleccionado.value },
+      metadata
    )
    emit('created')
    emit('close')

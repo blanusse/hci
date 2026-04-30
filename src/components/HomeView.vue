@@ -35,7 +35,7 @@
          </button>
 
          <!-- Room cards -->
-         <div v-for="room in rooms" :key="room.id" class="hd-room-card" @dragover.prevent @drop="onDrop(room)">
+         <div v-for="room in rooms" :key="room.id" class="hd-room-card" :class="{ wiggle: modoEdicion }" @dragover.prevent @drop="onDrop(room)">
 
             <div class="hd-room-header">
                <div class="hd-room-icon">
@@ -137,12 +137,11 @@
      @cancel="cuartoAEliminar = null"
   />
 
-  <component
-     :is="modalesPorTipo[dispositivoAbierto?.type?.name]"
-     v-if="dispositivoAbierto && modalesPorTipo[dispositivoAbierto?.type?.name]"
-     :device="dispositivoAbierto"
+  <DeviceModalRouter       
+     v-if="dispositivoAbierto"       
+     :device="dispositivoAbierto"                             
      @close="dispositivoAbierto = null; cargarRooms()"
-     @update:state="dispositivoAbierto.state.status = $event" 
+     @update:state="dispositivoAbierto.state.status = $event"
   />
 </template>
 
@@ -151,11 +150,12 @@ import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { getRooms, getRoomDevices, getHome } from '@/services/homeService'
 import { deviceIcons } from '@/utils/deviceIcons'
+import { getDeviceTypeName, deleteDevice, moverDevice, manipulateDevice, deleteRoom } from '@/services/deviceService'
+
 import NuevoDispositivoModal from '@/components/NuevoDispositivoModal.vue'
 import NuevoHabitacionModal from '@/components/NuevoHabitacionModal.vue'
-import LamparaModal from '@/components/dispositivos/LamparaModal.vue'
+import DeviceModalRouter from '@/components/dispositivos/DeviceModalRouter.vue'
 import ConfirmarEliminarModal from './ConfirmarEliminarModal.vue'
-import { getDeviceTypeName, deleteDevice, moverDevice, manipulateDevice, deleteRoom } from '@/services/deviceService'
 
 const route = useRoute()
 const homeId = route.params.id as string
@@ -167,9 +167,7 @@ const mostrarNuevoHabitacion = ref(false)
 const roomParaDispositivo = ref('')
 
 const dispositivoAbierto = ref<any>(null)
-const modalesPorTipo: Record<string, any> = {
-   lamp: LamparaModal,
-}
+
 
 const dispositivoAEliminar = ref<any>(null)
 const cuartoAEliminar = ref<any>(null)
@@ -284,13 +282,13 @@ async function confirmarBorrarCuarto() {
     height: 34px;
     padding: 0 12px;
     border-radius: 10px;
-    border: 1.5px solid rgba(99, 102, 241, .35);
-    background: var(--accent-light-light);
+    border: 1.5px solid rgba(246, 0, 0, 0.474);
+    background: var(--danger-light);
     cursor: pointer;
     display: flex;
     align-items: center;
     gap: 6px;
-    color: var(--accent);
+    color: var(--danger);
     font-size: 1rem;
     font-weight: 700;
     transition: background .15s, color .15s, border-color .15s, box-shadow .15s;
@@ -298,10 +296,12 @@ async function confirmarBorrarCuarto() {
     white-space: nowrap;
 }
 .hd-edit-btn:hover {
-    background: var(--accent-light);
-    border: 2px solid rgba(99, 102, 241, .85);
+    background: var(--danger-light);
+    border: 2px solid rgb(246, 0, 0);
 
 }
+
+
 
 
 
@@ -358,6 +358,15 @@ async function confirmarBorrarCuarto() {
     height: 100%;
     position: relative;
     transition: box-shadow .15s, border-color .15s;
+}
+
+@keyframes wiggle {
+    0%, 100% { transform: rotate(-1.5deg); }
+    50%       { transform: rotate(1.5deg); }
+}
+
+.hd-room-card.wiggle {
+    animation: wiggle 0.33s ease-in-out infinite;
 }
 
 .hd-room-list-header {

@@ -11,7 +11,7 @@
       </template>
 
       <!-- Preview -->
-      <div class="lamp-preview" :style="previewStyle">
+      <div class="lamp-preview" :style="previewStyle" :class="encendido ? 'on' : 'off'">
          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" v-html="deviceIcons['lamp']"></svg>
       </div>
 
@@ -81,12 +81,12 @@ const colorSeleccionado = ref(props.device.state?.color ?? 'Blanca')
 const colorPersonalizado = ref('#ffffff')
 
 const previewStyle = computed(() => {
-   if (!encendido.value) return { background: 'var(--surface2)', color: 'var(--text-muted)' }
+   if (!encendido.value) return { background: 'var(--surface2)', color: 'var(--text)' }
    const baseColor = colorSeleccionado.value === 'Personalizar'
       ? colorPersonalizado.value
       : swatches.find(s => s.label === colorSeleccionado.value)?.color ?? '#FFF8DC'
    const alpha = Math.round((intensidad.value / 100) * 255).toString(16).padStart(2, '0')
-   return { background: baseColor + alpha, color: '#F59E0B' }
+   return { background: baseColor + alpha, color: 'var(--text)' }
 })
 
 const swatches = [
@@ -138,9 +138,19 @@ function onColorPersonalizado() {
    border-radius: 50%;
    margin: 0 auto 20px;
    transition: background 0.3s;
+   border: 3px solid var(--border);
+   color: var(--text);
+
 }
-.lamp-preview.on  { background: #FFF8DC; color: #F59E0B; }
-.lamp-preview.off { background: var(--surface2); color: var(--text-muted); }
+.lamp-preview.on{
+   background: #FFF8DC;
+   color: #F59E0B;
+}
+.lamp-preview.off {
+   background: var(--surface2);
+   color: var(--text);
+   border-color: var(--border);
+}
 
 .dev-icon {
    width: 40px;
@@ -151,7 +161,10 @@ function onColorPersonalizado() {
    justify-content: center;
    flex-shrink: 0;
 }
-.dev-icon.on  { background: #E5F5FE; color: #0CA5E9; }
+.dev-icon.on{
+   background: #E5F5FE;
+   color: #0CA5E9;
+}
 .dev-icon.off { background: var(--surface2); color: var(--text-muted); }
 
 .dev-name   { font-size: 1.1rem; font-weight: 700; color: var(--text); }
