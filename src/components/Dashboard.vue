@@ -58,7 +58,6 @@
           <span class="recent-time">{{ item.tiempo }}</span>
         </div>
       </div>
-
    </div>
 
    <!-- Modales de dispositivos -->
@@ -74,6 +73,7 @@
    v-if="mostrarNuevoHogar"
    @close="mostrarNuevoHogar=false"
    @created="cargarHogares()"/>
+   
    <ConfirmarEliminarModal
    v-if="hogarAEliminar"
    :nombre="hogarAEliminar.name"

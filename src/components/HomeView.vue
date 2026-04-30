@@ -40,11 +40,11 @@
             <div class="hd-room-header">
                <div class="hd-room-icon">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                     v-html="room.metadata?.icon || deviceIcons['lampara']">
+                     v-html="room.metadata?.icon || deviceIcons['lamp']">
                   </svg>
                </div>
                <span class="hd-room-name">{{ room.name }}</span>
-               <span class="hd-room-count">{{ room.devices?.length ?? 0 }}</span>
+               <span class="hd-room-count">{{ room.devices?.length }}</span>
             </div>
 
             <div class="hd-device-list">
@@ -57,7 +57,7 @@
                   :class="{ on: device.state?.status === 'on' }"
                >
                   <div class="hd-device-icon">
-                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-html="deviceIcons[device.type] ?? deviceIcons['lampara']">
+                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-html="deviceIcons[device.type] ?? deviceIcons['lamp']">
                      </svg>
                   </div>
                   <div class="hd-device-info">
@@ -76,7 +76,7 @@
                </div>
             </div>
 
-            <button class="hd-add-device-btn">
+            <button class="hd-add-device-btn" @click="roomParaDispositivo=room.id; mostrarNuevoDispositivo = true">
                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M5 12h14"/><path d="M12 5v14"/>
                </svg>
@@ -87,26 +87,44 @@
       </div>
 
    </div>
+   <NuevoDispositivoModal
+     v-if="mostrarNuevoDispositivo"
+     :defaultHomeId="homeId"
+     :defaultRoomId="roomParaDispositivo"
+     @close="mostrarNuevoDispositivo = false"
+     @created="cargarRooms()"
+  />
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { getRooms, getRoomDevices } from '@/services/homeService'
+import { getRooms, getRoomDevices, getHome } from '@/services/homeService'
+import { getDeviceTypeId} from '@/services/deviceService'
 import { deviceIcons } from '@/utils/deviceIcons'
+import NuevoDispositivoModal from '@/components/NuevoDispositivoModal.vue'
 
 const route = useRoute()
 const homeId = route.params.id as string
 const homeName = ref('')
 const rooms = ref<any[]>([])
 
+const mostrarNuevoDispositivo = ref(false)
+const roomParaDispositivo = ref('')
+
 onMounted(async () => {
+   const home = await(getHome(homeId))
+   homeName.value = home.name
+   await cargarRooms()
+})
+
+async function cargarRooms() {
    const rawRooms = await getRooms(homeId)
    for (const room of rawRooms) {
       room.devices = await getRoomDevices(room.id)
    }
    rooms.value = rawRooms
-})
+}
 </script>
 
 <style scoped>
@@ -114,7 +132,7 @@ onMounted(async () => {
 
 .hd-header {
    display: flex;
-   align-items: center;
+   align-items: flex-end;
    justify-content: space-between;
    margin-bottom: 28px;
 }
@@ -132,7 +150,7 @@ onMounted(async () => {
    background: none;
    border: none;
    color: var(--accent);
-   font-size: 0.95rem;
+   font-size: 1.2rem;
    font-weight: 600;
    font-family: inherit;
    cursor: pointer;
@@ -140,32 +158,52 @@ onMounted(async () => {
 }
 
 .hd-home-name {
-   font-size: 2rem;
-   font-weight: 800;
+   font-size: 2.5rem;
+   font-weight: 1000;
    color: var(--text);
    letter-spacing: -0.02em;
    margin: 0;
 }
 
 .hd-edit-btn {
-   display: flex;
-   align-items: center;
-   gap: 6px;
-   padding: 8px 16px;
-   border-radius: 10px;
-   border: 1.5px solid var(--border);
-   background: var(--surface);
-   color: var(--text);
-   font-size: 0.9rem;
-   font-weight: 600;
-   font-family: inherit;
-   cursor: pointer;
+    height: 34px;
+    padding: 0 12px;
+    border-radius: 10px;
+    border: 1.5px solid rgba(99, 102, 241, .35);
+    background: var(--accent-light-light);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--accent);
+    font-size: 1rem;
+    font-weight: 700;
+    transition: background .15s, color .15s, border-color .15s, box-shadow .15s;
+    flex-shrink: 0;
+    white-space: nowrap;
 }
+.hd-edit-btn:hover {
+    background: var(--accent-light);
+    border: 2px solid rgba(99, 102, 241, .85);
+
+}
+
+
+
 
 .hd-rooms-grid {
    display: grid;
    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
    gap: 16px;
+}
+
+.hd-room-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
 }
 
 .hd-room-add {
@@ -195,21 +233,25 @@ onMounted(async () => {
 }
 
 .hd-room-card {
-   background: var(--surface);
-   border: 1.5px solid var(--border);
-   border-radius: 16px;
-   overflow: hidden;
-   display: flex;
-   padding: 14x;
-   flex-direction: column;
+    display: flex;
+    flex-direction: column;
+    border-radius: 16px;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    padding: 14px;
+    min-height: var(--room-card-min-height, 240px);
+    height: 100%;
+    position: relative;
+    transition: box-shadow .15s, border-color .15s;
 }
 
-.hd-room-header {
-   display: flex;
-   align-items: center;
-   gap: 10px;
-   padding: 16px;
-   border-bottom: 1px solid var(--border);
+.hd-room-list-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
 }
 
 .hd-room-icon {
@@ -226,13 +268,13 @@ onMounted(async () => {
 
 .hd-room-name {
    flex: 1;
-   font-size: 1rem;
+   font-size: 1.2rem;
    font-weight: 700;
    color: var(--text);
 }
 
 .hd-room-count {
-   font-size: 0.85rem;
+   font-size: 1rem;
    font-weight: 600;
    color: var(--text-muted);
    background: var(--surface2);
@@ -251,7 +293,7 @@ onMounted(async () => {
 
 .hd-room-empty {
    color: var(--text-muted);
-   font-size: 0.9rem;
+   font-size: 1.1rem;
    text-align: center;
    margin: auto;
 }
@@ -289,9 +331,20 @@ onMounted(async () => {
    gap: 2px;
 }
 
-.hd-device-name { font-size: 0.95rem; font-weight: 600; color: var(--text); }
-.hd-device-state { font-size: 0.8rem; color: var(--text-muted); }
-.state-on { color: var(--success); }
+.hd-device-name {
+   font-size: 1.1rem;
+   font-weight: 700;
+   color: var(--text);
+}
+
+.hd-device-state {
+   font-size: 0.8rem;
+   color: var(--text-muted);
+}
+
+.state-on {
+   color: var(--success); 
+}
 
 .hd-delete-btn {
    background: none;
@@ -312,16 +365,19 @@ onMounted(async () => {
    justify-content: center;
    gap: 6px;
    width: 100%;
-   padding: 12px;
-   border: none;
-   border-top: 1px solid var(--border);
+   border-radius: 10px;
+   border: 1.5px dashed rgba(63, 81, 181, .4);
    background: none;
    color: var(--accent);
-   font-size: 0.9rem;
+   font-size: 1rem;
    font-weight: 600;
    font-family: inherit;
    cursor: pointer;
    transition: background 0.15s;
 }
-.hd-add-device-btn:hover { background: var(--accent-light); }
+.hd-add-device-btn:hover { 
+   background: var(--accent-light); 
+   border: 1.5px dashed rgba(63, 81, 181, .9);
+
+}
 </style>

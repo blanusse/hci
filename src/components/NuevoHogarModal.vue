@@ -199,10 +199,9 @@ function agregarCustom() {
 }
 
 async function crearHogar() {
-   console.log('crearHogar llamado')
    const home = await createHome(nombre.value.trim(), iconSeleccionado.value)
    for(const habitacion of habitaciones.value){
-      await createRoomInHome(home.id, habitacion.name, habitacion.icon)
+      await createRoomInHome(home, habitacion.name, habitacion.icon)
    }
    emit('created')
    emit('close')

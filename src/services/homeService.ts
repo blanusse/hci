@@ -6,6 +6,11 @@ export async function getHomes(){
    return await apiGet('/homes')
 }
 
+export async function getHome(homeId: string){
+   return await apiGet(`/homes/${homeId}`)
+
+}
+
 
 export async function getRooms(homeId: string){
    return await apiGet(`/homes/${homeId}/rooms`)
@@ -21,9 +26,9 @@ export async function createHome(name: string, icon: string){
    return await apiPost('/homes', {name, metadata: {icon}})
 }
 
-export async function createRoomInHome(homeId: string, name: string, icon: string =''){
-   const ans = await apiPost(`/rooms`, {name, metadata: {icon}})
-   return await apiPost(`/homes/${homeId}/rooms/${ans.id}`, {})
+export async function createRoomInHome(home: Object, name: string, icon: string =''){
+   return await apiPost(`/rooms`, {name,home, metadata: {icon}})
+
 }
 
 //deletes

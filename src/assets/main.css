@@ -76,6 +76,6 @@ button:disabled {
 
 .add-card-btn:hover{
    background: rgba(63, 81, 181, .11);
-   border: 1.5px dashed rgba(63, 81, 181, .7);
+   border: 1.5px dashed rgba(63, 81, 181, .9);
 
 }

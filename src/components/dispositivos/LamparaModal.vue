@@ -2,7 +2,7 @@
    <DeviceModal @close="$emit('close')">
       <template #header>
          <div class="dev-icon" :class="encendido ? 'on' : 'off'">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-html="deviceIcons['lampara']"></svg>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-html="deviceIcons['lamp']"></svg>
          </div>
          <div>
             <div class="dev-name">{{ nombre }}</div>
@@ -12,7 +12,7 @@
 
       <!-- Preview -->
       <div class="lamp-preview" :class="encendido ? 'on' : 'off'">
-         <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" v-html="deviceIcons['lampara']"></svg>
+         <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" v-html="deviceIcons['lamp']"></svg>
       </div>
 
       <!-- On / Off -->
@@ -24,7 +24,7 @@
       <!-- Intensity slider -->
       <div class="section-label">Intensidad</div>
       <div class="slider-row">
-         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-html="deviceIcons['lampara']"></svg>
+         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-html="deviceIcons['lamp']"></svg>
          <input
             type="range"
             min="0"

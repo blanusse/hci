@@ -18,16 +18,34 @@ api.interceptors.request.use((config) =>{
 
 
 export async function apiPost(ruta: string, body: object){
-   const res = await api.post(ruta, body)
-   return res.data
+   try{
+      const res = await api.post(ruta, body)
+      return res.data
+   }
+   catch(e: any){
+      console.error(`POST ${ruta}:`, e.response?.data ?? e.message)
+      throw e
+   }
 }
 
 export async function apiGet(ruta: string){
-   const res = await api.get(ruta)
-   return res.data
+   try{
+      const res = await api.get(ruta)
+      return res.data
+   }
+   catch(e: any){
+      console.error(`GET ${ruta}:`, e.response?.data ?? e.message)
+      throw e
+   }
 }
 
 export async function apiDelete(ruta :string) {
-   const res = await api.delete(ruta)
-   return res.data
+   try{
+      const res = await api.delete(ruta)
+      return res.data
+   }
+   catch(e: any){
+      console.error(`DELETE ${ruta}:`, e.response?.data ?? e.message)
+      throw e
+   }
 }
