@@ -200,6 +200,7 @@
                   :class="{ 'sch-btn--disabled': rutina.deshabilitada }"
                   :disabled="rutina.deshabilitada"
                   title="Ejecutar ahora"
+                  @click.stop="ejecutarRutina(rutina)"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="ICONS['play']"></svg>
                 </button>
@@ -239,7 +240,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { getHomes, getRooms, getRoomDevices } from "@/services/homeService";
-import { getRoutines, updateRoutine, deleteRoutine } from "@/services/routineService";
+import { getRoutines, updateRoutine, executeRoutine, deleteRoutine } from "@/services/routineService";
 import { manipulateDevice } from "@/services/deviceService";
 import NuevaRutinaModal from "@/components/NuevaRutinaModal.vue";
 import ConfirmarEliminarModal from "@/components/ConfirmarEliminarModal.vue";
@@ -335,6 +336,14 @@ async function toggleRutina(rutina: Rutina) {
   } catch (e) {
     rutina.activa = !nuevoEstado;
     rutina.deshabilitada = nuevoEstado;
+  }
+}
+
+async function ejecutarRutina(rutina: Rutina) {
+  try {
+    await executeRoutine(rutina.id);
+  } catch (e: any) {
+    console.error('Error al ejecutar rutina:', e.response?.data?.error?.description ?? e.message);
   }
 }
 
