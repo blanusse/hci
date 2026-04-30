@@ -1,4 +1,5 @@
 import { apiDelete, apiGet, apiPost } from '@/utils/api'
+import { deleteRoom } from './deviceService'
 
 //getters
 
@@ -28,12 +29,15 @@ export async function createHome(name: string, icon: string){
 
 export async function createRoomInHome(home: Object, name: string, icon: string =''){
    return await apiPost(`/rooms`, {name,home, metadata: {icon}})
-
 }
 
 //deletes
 
 export async function deleteHome(homeId: string){
+   const rooms = await getRooms(homeId)
+   for(const room of rooms){
+      await deleteRoom(room.id)
+   }
    return await apiDelete(`/homes/${homeId}`)
 }
 
@@ -51,4 +55,3 @@ export async function deleteRoomFromHome(roomId: string){
 
 
 
-// casa campo

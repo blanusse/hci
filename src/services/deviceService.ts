@@ -1,4 +1,5 @@
 import { apiDelete, apiGet, apiPatch, apiPost } from '@/utils/api'
+import { deleteRoomFromHome, getRoomDevices,  } from './homeService'
 
 //"mapa" con nameType - typeId
 let cachedTypes: Record<string, string> | null = null
@@ -20,6 +21,7 @@ export async function getDeviceTypeId(name: string): Promise<string> {
    return cachedTypes[name]
 }
 
+//carga en cachedTypes los ids de los tipos con su nombre
 export async function getDeviceTypeName(id: string): Promise<string>{
      if (!cachedTypesById) {
         const types = await apiGet('/devicetypes')
@@ -31,15 +33,18 @@ export async function getDeviceTypeName(id: string): Promise<string>{
      return cachedTypesById[id]
 } 
 
+//devuelve la info de un dispositivo
 export async function getDevice(deviceId: string){
    return await apiGet(`devices/${deviceId}`)
 }
 
-
+//devuelve el tipo de dispositivo
 export async function getDeviceType(deviceType: string){
    const id = await getDeviceTypeId(deviceType)
    return await apiGet(`devicetypes/${id}`)
 }
+
+
 
 //creators
 export async function newDeviceInRoom(name: string, type: Object, room: Object) {
@@ -57,9 +62,25 @@ export async function moverDevice(deviceId: string, roomDestinoId: string){
 
 //deleters
 
+
 export async function deleteDevice(deviceId: string) {
    return await apiDelete(`/devices/${deviceId}`)
 }
+
+
+export async function deleteRoom(roomId: string) {
+   const devices = await getRoomDevices(roomId)
+   for(const device of devices){
+      await deleteDevice(device.id)
+   }
+   await deleteRoomFromHome(roomId)
+   return await apiDelete(`/rooms/${roomId}`)
+}
+
+
+
+
+
 
 //patchers
 

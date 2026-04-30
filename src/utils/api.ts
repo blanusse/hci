@@ -18,6 +18,7 @@ api.interceptors.request.use((config) =>{
 
 
 export async function apiPost(ruta: string, body: object){
+   console.log(localStorage.getItem('token'))
    try{
       const res = await api.post(ruta, body)
       return res.data

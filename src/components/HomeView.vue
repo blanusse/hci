@@ -12,12 +12,12 @@
             </button>
             <h2 class="hd-home-name">{{ homeName }}</h2>
          </div>
-         <button class="hd-edit-btn">
+         <button class="hd-edit-btn" @click="modoEdicion= !modoEdicion">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/>
                <path d="m15 5 4 4"/>
             </svg>
-            Editar habitaciones
+            {{modoEdicion ? 'Listo' : 'Editar Habitaciones'}}
          </button>
       </div>
 
@@ -25,7 +25,7 @@
       <div class="hd-rooms-grid">
 
          <!-- Agregar habitación -->
-         <button class="add-card-btn">
+         <button class="add-card-btn" @click="mostrarNuevoHabitacion = true">
             <div class="hd-room-add-icon">
                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M5 12h14"/><path d="M12 5v14"/>
@@ -45,6 +45,13 @@
                </div>
                <span class="hd-room-name">{{ room.name }}</span>
                <span class="hd-room-count">{{ room.devices?.length }}</span>
+               <button v-if="modoEdicion" class="delete-btn" @click="borrarCuarto(room)" >
+                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10 11v6"/><path d="M14 11v6"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+                        <path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                     </svg>
+                  </button>
             </div>
 
             <div class="hd-device-list">
@@ -76,7 +83,7 @@
                   >
                      <span class="toggle-knob"></span>
                   </button>
-                  <button class="delete-btn" @click.stop="borrarDispositivo(device)" >
+                  <button v-if="modoEdicion" class="delete-btn" @click.stop="borrarDispositivo(device)" >
                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M10 11v6"/><path d="M14 11v6"/>
                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
@@ -105,11 +112,29 @@
      @created="cargarRooms()"
   />
 
+  <NuevoHabitacionModal
+     v-if="mostrarNuevoHabitacion"
+     :homeId="homeId"
+     @close="mostrarNuevoHabitacion = false"
+     @created="cargarRooms()"
+  />
+
   <ConfirmarEliminarModal
      v-if="dispositivoAEliminar"
      :nombre="dispositivoAEliminar.name"
+     titulo="Eliminar Dispositivo"
+     descripcion="El dispositivo se elimina permanentemente"
      @confirm="confirmarBorrarDispositivo()"
      @cancel="dispositivoAEliminar = null"
+  />
+
+  <ConfirmarEliminarModal
+     v-if="cuartoAEliminar"
+     :nombre="cuartoAEliminar.name"
+     titulo="Eliminar Ambiente"
+     descripcion="El ambiente y los dispositivos en el se eliminaran permanentemente"
+     @confirm="confirmarBorrarCuarto()"
+     @cancel="cuartoAEliminar = null"
   />
 
   <component
@@ -127,9 +152,10 @@ import { useRoute } from 'vue-router'
 import { getRooms, getRoomDevices, getHome } from '@/services/homeService'
 import { deviceIcons } from '@/utils/deviceIcons'
 import NuevoDispositivoModal from '@/components/NuevoDispositivoModal.vue'
+import NuevoHabitacionModal from '@/components/NuevoHabitacionModal.vue'
 import LamparaModal from '@/components/dispositivos/LamparaModal.vue'
 import ConfirmarEliminarModal from './ConfirmarEliminarModal.vue'
-import { getDeviceTypeName, deleteDevice, moverDevice, manipulateDevice } from '@/services/deviceService'
+import { getDeviceTypeName, deleteDevice, moverDevice, manipulateDevice, deleteRoom } from '@/services/deviceService'
 
 const route = useRoute()
 const homeId = route.params.id as string
@@ -137,6 +163,7 @@ const homeName = ref('')
 const rooms = ref<any[]>([])
 
 const mostrarNuevoDispositivo = ref(false)
+const mostrarNuevoHabitacion = ref(false)
 const roomParaDispositivo = ref('')
 
 const dispositivoAbierto = ref<any>(null)
@@ -145,7 +172,8 @@ const modalesPorTipo: Record<string, any> = {
 }
 
 const dispositivoAEliminar = ref<any>(null)
-
+const cuartoAEliminar = ref<any>(null)
+const modoEdicion = ref(false)
 
 const deviceArrastrado = ref<any>(null)
 function onDragStart(device: any){
@@ -169,6 +197,7 @@ function abrirDispositivo(device: any) {
      console.log('device:', device)
      dispositivoAbierto.value = device
   }
+
 
 onMounted(async () => {
    const home = await(getHome(homeId))
@@ -194,6 +223,16 @@ async function borrarDispositivo(device: any){
 async function confirmarBorrarDispositivo(){
    await deleteDevice(dispositivoAEliminar.value.id)
    dispositivoAEliminar.value = null
+   await cargarRooms()
+}
+
+async function borrarCuarto(room: any){
+   cuartoAEliminar.value = room
+}
+
+async function confirmarBorrarCuarto() {
+   await deleteRoom(cuartoAEliminar.value.id)
+   cuartoAEliminar.value = null
    await cargarRooms()
 }
 

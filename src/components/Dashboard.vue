@@ -77,6 +77,8 @@
    <ConfirmarEliminarModal
    v-if="hogarAEliminar"
    :nombre="hogarAEliminar.name"
+   titulo="Eliminar Hogar"
+   descripcion="Se eliminarán todos sus cuartos y dispositivos. Esta acción no se puede deshacer."
    @confirm="borrarHogar(hogarAEliminar.id); hogarAEliminar = null"
    @cancel="hogarAEliminar=null"
    />

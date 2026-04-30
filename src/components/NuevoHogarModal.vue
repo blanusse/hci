@@ -99,12 +99,13 @@
          </div>
 
       </template>
+      <p v-if="errorMsg" class="auth-error">{{ errorMsg }}</p>
 
       <!-- Footer -->
       <div class="modal-footer">
          <template v-if="paso === 1">
             <button class="btn-secondary" @click="$emit('close')">Cancelar</button>
-            <button class="btn-primary" @click="siguiente" :disabled="!nombre.trim()">
+            <button class="btn-primary" @click="siguiente">
                Siguiente
                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </button>
@@ -132,6 +133,7 @@ import { apiPost } from '@/utils/api'
 
 const emit = defineEmits(['close', 'created'])
 
+const errorMsg = ref('')
 const paso = ref(1)
 const nombre = ref('')
 const iconSeleccionado = ref('')
@@ -182,7 +184,12 @@ const roomPresets = [
 ]
 
 function siguiente() {
-   if (nombre.value.trim()) paso.value = 2
+   if(nombre.value.trim().length < 3){
+      errorMsg.value = 'El nombre debe tener al menos 3 caracteres.'
+      return
+   }
+   errorMsg.value = ''
+   paso.value = 2
 }
 
 function togglePreset(p: { name: string, icon: string }) {
@@ -193,18 +200,28 @@ function togglePreset(p: { name: string, icon: string }) {
 
 function agregarCustom() {
    if (!roomDraft.value.trim()) return
+   if (roomDraft.value.trim().length < 3){
+      errorMsg.value = 'El nombre del cuarto debe tener al menos 3 caracteres'
+      return
+   }
+   errorMsg.value = ''
    habitaciones.value.push({ name: roomDraft.value.trim(), icon: roomIconDraft.value })
    roomDraft.value = ''
    roomIconDraft.value = ''
 }
 
 async function crearHogar() {
+   try{
    const home = await createHome(nombre.value.trim(), iconSeleccionado.value)
    for(const habitacion of habitaciones.value){
       await createRoomInHome(home, habitacion.name, habitacion.icon)
    }
    emit('created')
    emit('close')
+}
+   catch(e:any){
+      errorMsg.value=e.response?.data?.description ?? 'Error al crear el hogar'
+   }
 }
 </script>
 
