@@ -18,13 +18,8 @@ body {
     max-width: 1200px;
     min-width: 100px;
     margin: 0 auto;
-  }
-
-@media screen {
-    .page-content {             
-        padding-bottom: 60px;
-  }
 }
+
 
 :root {
     --bg: #F4F5FB;
