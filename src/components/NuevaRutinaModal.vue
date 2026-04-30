@@ -126,7 +126,7 @@
 import { ref } from 'vue'
 import DeviceModal from './DeviceModal.vue'
 import { createRoutine } from '@/services/routineService'
-import { ICONS, ROUTINE_ICONS } from '@/utils/icons'
+import { ICONS, ROUTINE_ICONS } from '@/utils/routineIcons'
 
 const props = defineProps<{ hogares: { id: string; name: string }[] }>()
 const emit = defineEmits(['close', 'created'])

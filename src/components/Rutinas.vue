@@ -231,7 +231,7 @@ import { ref, computed, onMounted } from "vue";
 import { getHomes } from "@/services/homeService";
 import { getRoutines } from "@/services/routineService";
 import NuevaRutinaModal from "@/components/NuevaRutinaModal.vue";
-import { ICONS } from "@/utils/icons";
+import { ICONS } from "@/utils/routineIcons";
 
 
 interface Rutina {
