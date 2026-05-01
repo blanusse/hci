@@ -14,7 +14,7 @@ body {
 
 
 .page-content {
-    padding: 58px 24px;
+    padding: 60px 24px;
     max-width: 1200px;
     min-width: 100px;
     margin: 0 auto;
@@ -42,6 +42,7 @@ body {
     --text: #1e293b;
     --text-muted: #64748b;
     --success: #2e7d32;
+    --toggle-on: #11B981;
     --success-light: rgba(46,125,50,.1);
     --danger: #c62828;
     --danger-light: rgba(198,40,40,.08);

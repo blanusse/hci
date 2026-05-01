@@ -146,11 +146,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { getRooms, getRoomDevices, getHome } from '@/services/homeService'
 import { deviceIcons } from '@/utils/deviceIcons'
 import { getDeviceTypeName, deleteDevice, moverDevice, manipulateDevice, deleteRoom } from '@/services/deviceService'
+import { useSocketStore } from '@/stores/socket'
 
 import NuevoDispositivoModal from '@/components/NuevoDispositivoModal.vue'
 import NuevoHabitacionModal from '@/components/NuevoHabitacionModal.vue'
@@ -158,6 +159,7 @@ import DeviceModalRouter from '@/components/dispositivos/DeviceModalRouter.vue'
 import ConfirmarEliminarModal from './ConfirmarEliminarModal.vue'
 
 const route = useRoute()
+const socketStore = useSocketStore()
 const homeId = route.params.id as string
 const homeName = ref('')
 const rooms = ref<any[]>([])
@@ -174,9 +176,32 @@ const cuartoAEliminar = ref<any>(null)
 const modoEdicion = ref(false)
 
 const deviceArrastrado = ref<any>(null)
+
+
+onMounted(async () => {
+   const socket = socketStore.socket
+   if(!socket) return
+   socket.on('deviceUpdated', () => cargarRooms())
+   socket.on('deviceCreated', () => cargarRooms())
+   socket.on('deviceDeleted', () => cargarRooms())
+   const home = await(getHome(homeId))
+   homeName.value = home.name
+   await cargarRooms()
+})
+
+onUnmounted(() => {
+    const socket = socketStore.socket
+    socket?.off('deviceUpdated')
+    socket?.off('deviceCreated')
+    socket?.off('deviceDeleted')
+  })
+
+
 function onDragStart(device: any){
    deviceArrastrado.value = device
 }
+
+
 
 async function onDrop(roomDestino: any){
    if(!deviceArrastrado.value) return
@@ -197,11 +222,7 @@ function abrirDispositivo(device: any) {
   }
 
 
-onMounted(async () => {
-   const home = await(getHome(homeId))
-   homeName.value = home.name
-   await cargarRooms()
-})
+
 
 async function cargarRooms() {
    const rawRooms = await getRooms(homeId)
@@ -238,7 +259,7 @@ async function confirmarBorrarCuarto() {
 
 <style scoped>
 .home-view {
-   padding: clamp(1rem, 4vw, 3rem);
+   /* padding: clamp(1rem, 4vw, 3rem); */
    max-width: 1200px;
    margin: 0 auto;
 }
@@ -247,7 +268,7 @@ async function confirmarBorrarCuarto() {
    display: flex;
    align-items: flex-end;
    justify-content: space-between;
-   margin-bottom: 28px;
+   margin: 28px 0;
 }
 
 .hd-title-wrap {

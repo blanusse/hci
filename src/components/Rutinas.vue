@@ -587,7 +587,7 @@ async function toggleTodasLasLuces() {
   border-radius: 12px;
   background: var(--toggle-off);
   transition: background-color 0.2s;
-  margin: 10px auto 0px;
+  /* margin: 10px auto 0px; */
   flex-shrink: 0;
 }
 
@@ -604,7 +604,7 @@ async function toggleTodasLasLuces() {
 }
 
 .toggle.on {
-  background: var(--success);
+  background: var(--toggle-on);
 }
 
 .toggle.on::after {
@@ -628,7 +628,7 @@ async function toggleTodasLasLuces() {
 }
 
 .toggle--lg.on {
-  background: var(--success);
+  background: var(--toggle-on);
 }
 
 .toggle--lg.on::after {

@@ -460,12 +460,10 @@ function abrirModal(item: any) {
    border-radius: 0.75rem;
    box-shadow: 0 1px 3px var(--box-shadow-2);
    cursor: pointer;
-   color: black;
+
 }
 
 .recent-item:hover{
-   /* border: 1px solid var(--border-strong);
-   box-shadow: 0 1px 3px rgba(0, 0, 0, .5); */
 border-color: var(--accent);
    box-shadow: 0 4px 16px var(--accent-light);
    transform: translateY(-2px);

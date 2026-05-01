@@ -13,9 +13,9 @@ export const useSocketStore = defineStore('socket', () => {
       if (!auth.token) return
 
       socket.value = io('https://hci.it.itba.edu.ar/', {
-         transports: ['websocket'],
+         transports: ['polling', 'websocket'],
          reconnection: false,
-         auth: { token: auth.token }
+         auth: { token: auth.token, apiKey: import.meta.env.VITE_API_KEY?.replace('sk_', '') }
       })
 
       socket.value.on('connect', () => { conectado.value = true })
