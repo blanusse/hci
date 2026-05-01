@@ -33,7 +33,7 @@ defineEmits(['close'])
 }
 
 .modal {
-   background: white;
+   background: var(--surface);
    border-radius: 20px;
    width: 90%;
    max-width: 500px;

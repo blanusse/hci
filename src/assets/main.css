@@ -14,7 +14,7 @@ body {
 
 
 .page-content {
-    padding: 28px 24px;
+    padding: 58px 24px;
     max-width: 1200px;
     min-width: 100px;
     margin: 0 auto;
@@ -22,6 +22,8 @@ body {
 
 
 :root {
+    --gradient-one: #6466ea;
+    --gradient-two: #6861e8;
     --bg: #F4F5FB;
     --surface: #ffffff;
     --surface2: #EAEBF4;
@@ -43,6 +45,10 @@ body {
     --success-light: rgba(46,125,50,.1);
     --danger: #c62828;
     --danger-light: rgba(198,40,40,.08);
+    --color-icon: #F59E0B;
+    --box-shadow: rgba(26, 35, 126, .30);
+    --weather-color: rgba(255, 255, 255, .12);
+    --box-shadow-2: rgba(0, 0, 0, .03);
     font-size: clamp(12px, 1.2vw, 16px);
 }
 

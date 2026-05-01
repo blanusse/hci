@@ -90,25 +90,32 @@ function toggleDark() {
 
 <style scoped>
 .navbar {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  right: 0px;
   display: flex;
   align-items: center;
   gap: 2rem;
   padding: 0px 24px;
   height: 60px;
-  background: var(--bg);
+  background: var(--surface);
   border-bottom: 1px solid var(--border);
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  box-shadow: 0 4px 20px var(--box-shadow);
 }
 
 .nav-btn{
   display: flex;
   align-items: center;
   gap: 7px;
-  background: var(--bg);
+  background: var(--surface);
   border: 1px solid transparent;
   border-bottom: none;
   color: var(--accent);
   padding: 8px 14px;
-  border-radius: 8px 8px 0 0;
+  border-radius: 5px;
   cursor: pointer;
   font-size: 1.015rem;
   font-weight: 600;
@@ -117,7 +124,14 @@ function toggleDark() {
   height: 40px;
   margin-bottom: -1px;
   font-family: inherit;
+  
 }
+
+.nav-btn:hover{
+  background: var(--accent);
+  color: var(--surface);
+}
+
 
 .navbar-brand {
   display: flex;
@@ -132,17 +146,18 @@ function toggleDark() {
   cursor: pointer;
   border-radius: 8px;
   transition: background-color 0.15s, color 0.15s;
+  max-width: 200px;
 }
 
 
 
 .brand-icon {
-      width: 40px;
+    width: 40px;
     height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: rgb(255, 255, 255);
+    color: var(--surface);
     flex-shrink: 0;
     background: var(--accent);
     border-radius: 50%;
@@ -150,12 +165,12 @@ function toggleDark() {
 
 .navbar-brand:hover {
   background: var(--accent);
-  color: white;
+  color: var(--surface);
 
 }
 
 .navbar-brand:hover .brand-icon {
-  background: white;
+  background: var(--surface);
   color: var(--accent);
 
 }
@@ -172,10 +187,7 @@ function toggleDark() {
   flex-shrink: 0;
 }
 
-.nav-btn:hover{
-  background: var(--accent);
-  color: white;
-}
+
 
 .navbar-actions {
   display: flex;
@@ -189,7 +201,7 @@ function toggleDark() {
   border-radius: 18px;
   border: none;
   background: transparent;
-  color: #4a5068;
+  color: var(--text);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -197,14 +209,14 @@ function toggleDark() {
   position: relative;
   transition: background 0.15s;
 }
-.icon-btn:hover { background: #c8cbc7; }
+.icon-btn:hover { background: var(--surface2); }
 
 .badge {
   position: absolute;
   top: 4px;
   right: 4px;
-  background: #e53e3e;
-  color: white;
+  background: var(--danger);
+  color: var(--surface);
   font-size: 0.6rem;
   font-weight: 700;
   width: 16px;
@@ -221,13 +233,16 @@ function toggleDark() {
 }
 
 @media (max-width: 780px) {
+  .navbar{
+    align-content:flex-end;
+  }
   .navbar-links {                                                                                                                                 
       position: fixed;                 
       bottom: 0;
       left: 0;                    
       right: 0;             
       height: 50px;
-      background: white;
+      background: var(--surface);
       border-top: 1px solid var(--border);
       justify-content: space-around;   
       z-index: 100;
@@ -243,7 +258,7 @@ function toggleDark() {
     left: 0;
     right: 0;
     height: 60px;
-    background: white;
+    background: var(--surface);
     border-top: 1px solid var(--border);
     justify-content: space-around;
     align-items: center;
@@ -266,7 +281,7 @@ function toggleDark() {
 
   .bottom-nav-link:hover, .bottom-nav-link:active {
     background: var(--accent);
-    color: white;
+    color: var(--surface);
   }
 }
 </style>

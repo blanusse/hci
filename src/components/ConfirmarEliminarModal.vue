@@ -66,7 +66,7 @@ defineEmits(['confirm', 'cancel'])
    width: 64px;
    height: 64px;
    border-radius: 50%;
-   background: rgba(220, 53, 69, 0.1);
+   background: var(--danger-light);
    display: flex;
    align-items: center;
    justify-content: center;
@@ -116,14 +116,14 @@ defineEmits(['confirm', 'cancel'])
    border-radius: 10px;
    border: none;
    background: var(--color-red-dark);
-   color: white;
+   color: var(--surface);
    font-size: 1rem;
    font-weight: 700;
    font-family: inherit;
    cursor: pointer;
 }
 
-.btn-delete:hover { background: #c82333; }
+.btn-delete:hover { background: var(--danger); }
 
 .confirm-error {
    color: var(--color-red-dark);

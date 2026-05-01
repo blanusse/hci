@@ -374,7 +374,7 @@ display: block;
 }
 .perm-action-btn svg { width: 20px; height: 20px; }
 .perm-action-btn:hover { background: rgba(63,81,181,.1); color: var(--color-indigo); }
-.perm-action-btn--danger:hover { background: #FEE2E2; color: var(--color-red); }
+.perm-action-btn--danger:hover { background: var(--bg); color: var(--color-red); }
 .perm-empty {
     display: flex; flex-direction: column; align-items: center;
     gap: 8px; text-align: center; padding: 40px 20px;
@@ -420,7 +420,7 @@ display: block;
     padding: 2px 7px; border-radius: 10px;
     flex-shrink: 0;
 }
-.perm-restrict-badge--on  { background: rgba(0,137,123,.1); color: #00897B; }
+.perm-restrict-badge--on  { background: rgba(0,137,123,.1); color: var(--success); }
 .perm-restrict-badge--off { background: rgba(239,68,68,.1);  color: var(--color-red); }
 .hd-edit-rooms-btn svg { width: 15px; height: 15px; }
 
@@ -548,7 +548,7 @@ display: block;
 }
 .modal-success {
   font-size: 1rem;
-  color: #00897B;
+  color: var(--success);
   background: rgba(0,137,123,.08);
   border-radius: 8px;
   padding: 8px 12px;

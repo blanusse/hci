@@ -451,7 +451,7 @@ async function toggleTodasLasLuces() {
 
 .rut-home-card.active {
   border-color: transparent;
-  background: linear-gradient(135deg, #6466ea 0%, #6861e8 100%);
+  background: linear-gradient(135deg, var(--gradient-one) 0%, var(--gradient-two) 100%);
   color: var(--surface);
   box-shadow: 0 12px 24px rgba(79, 70, 229, 0.18);
 }

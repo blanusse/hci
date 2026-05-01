@@ -524,7 +524,7 @@ async function resetPassword() {
 
 .auth-brand {
    flex: 0 0 45%;
-   background: linear-gradient(145deg, #0D1752 0%, var(--rut-btn-primary) 35%, #283593 65%, var(--color-indigo) 100%);
+   background: linear-gradient(145deg, #0D1752 0%, var(--rut-btn-primary) 35%, var(--rut-btn-primary-hover) 65%, var(--color-indigo) 100%);
    display: flex;
    align-items: center;
    justify-content: center;
@@ -558,7 +558,7 @@ async function resetPassword() {
 }
 .auth-brand-sub {
     font-size: .95rem;
-    color: rgba(255, 255, 255, .7);
+    color: var(--border);
     line-height: 1.6;
     margin-bottom: 40px;
 }
@@ -600,7 +600,7 @@ async function resetPassword() {
     width: 38px;
     height: 38px;
     border-radius: 10px;
-    background: rgba(255, 255, 255, .12);
+    background: var(--weather-color);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -745,7 +745,7 @@ async function resetPassword() {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    box-shadow: 0 4px 16px rgba(26, 35, 126, .30);
+    box-shadow: 0 4px 16px var(--box-shadow);
     transition: background .15s, box-shadow .15s, transform .1s;
 }
 

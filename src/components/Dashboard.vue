@@ -248,7 +248,7 @@ function abrirModal(item: any) {
     margin-bottom: 28px;
     margin-top: 28px;
     color: var(--surface);
-    box-shadow: 0 4px 20px rgba(26, 35, 126, .30);
+    box-shadow: 0 4px 20px var(--box-shadow);
 }
 
 
@@ -301,7 +301,7 @@ function abrirModal(item: any) {
    font-size: 1.025rem;
    font-weight: 750;
    opacity: .78;
-   background: rgba(255, 255, 255, .12);
+   background: var(--weather-color);
    border-radius: 20px;
    padding: 4px 15px;
    text-transform: capitalize;
@@ -345,7 +345,7 @@ function abrirModal(item: any) {
 
 .hogar-card:hover{
    border-color: var(--accent);
-   box-shadow: 0 4px 16px rgba(99, 102, 241, 0.15);
+   box-shadow: 0 4px 16px var(--accent-light);
    transform: translateY(-2px);
    background: var(--surface-light);
 }
@@ -458,7 +458,7 @@ function abrirModal(item: any) {
    background: var(--surface);
    border: 1px solid var(--border);
    border-radius: 0.75rem;
-   box-shadow: 0 1px 3px rgba(0, 0, 0, .03);
+   box-shadow: 0 1px 3px var(--box-shadow-2);
    cursor: pointer;
    color: black;
 }
@@ -467,7 +467,7 @@ function abrirModal(item: any) {
    /* border: 1px solid var(--border-strong);
    box-shadow: 0 1px 3px rgba(0, 0, 0, .5); */
 border-color: var(--accent);
-   box-shadow: 0 4px 16px rgba(99, 102, 241, 0.15);
+   box-shadow: 0 4px 16px var(--accent-light);
    transform: translateY(-2px);
 }
 

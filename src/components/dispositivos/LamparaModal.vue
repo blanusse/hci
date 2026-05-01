@@ -143,8 +143,8 @@ function onColorPersonalizado() {
 
 }
 .lamp-preview.on{
-   background: #FFF8DC;
-   color: #F59E0B;
+   background: var(--bg);
+   color: var(--color-icon);
 }
 .lamp-preview.off {
    background: var(--surface2);
