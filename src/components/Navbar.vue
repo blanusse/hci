@@ -20,6 +20,14 @@
     </div>
 
     <div class="navbar-actions">
+      <button class="icon-btn" @click="toggleDark" :title="isDark ? 'Modo claro' : 'Modo oscuro'">
+        <svg v-if="isDark" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+        <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+        </svg>
+      </button>
       <button class="icon-btn" @click="$emit('open-notificaciones')">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/>
@@ -42,15 +50,39 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
 import { useNotificacionesStore } from '@/stores/notificaciones'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const notifStore = useNotificacionesStore()
-const {sinLeer} = storeToRefs(notifStore)
+const { sinLeer } = storeToRefs(notifStore)
 
 defineEmits(['brand-click', 'open-notificaciones'])
+
+const isDark = ref(false)
+
+onMounted(() => {
+  const saved = localStorage.getItem('theme')
+  if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    isDark.value = true
+    document.documentElement.classList.add('dark')
+  }
+})
+
+function toggleDark() {
+  isDark.value = !isDark.value
+  if (isDark.value) {
+    document.documentElement.classList.add('dark')
+    document.documentElement.classList.remove('light')
+    localStorage.setItem('theme', 'dark')
+  } else {
+    document.documentElement.classList.remove('dark')
+    document.documentElement.classList.add('light')
+    localStorage.setItem('theme', 'light')
+  }
+}
 
 
 
@@ -63,15 +95,15 @@ defineEmits(['brand-click', 'open-notificaciones'])
   gap: 2rem;
   padding: 0px 24px;
   height: 60px;
-  background: white;
-  border-bottom: 1px solid #e5e8f0;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
 }
 
 .nav-btn{
   display: flex;
   align-items: center;
   gap: 7px;
-  background: #fff;
+  background: var(--bg);
   border: 1px solid transparent;
   border-bottom: none;
   color: var(--accent);
@@ -93,7 +125,7 @@ defineEmits(['brand-click', 'open-notificaciones'])
   gap: 0.5rem;
   font-weight: 800;
   font-size: 1.406rem;
-  color: #6366F1;
+  color: var(--accent);
   background: transparent;
   border: none;
   padding: 4px 8px;;
@@ -117,14 +149,14 @@ defineEmits(['brand-click', 'open-notificaciones'])
 }
 
 .navbar-brand:hover {
-  background: #6366F1;
+  background: var(--accent);
   color: white;
 
 }
 
 .navbar-brand:hover .brand-icon {
   background: white;
-  color: #6366F1;
+  color: var(--accent);
 
 }
 
@@ -141,7 +173,7 @@ defineEmits(['brand-click', 'open-notificaciones'])
 }
 
 .nav-btn:hover{
-  background: #6366F1;
+  background: var(--accent);
   color: white;
 }
 
@@ -196,7 +228,7 @@ defineEmits(['brand-click', 'open-notificaciones'])
       right: 0;             
       height: 50px;
       background: white;
-      border-top: 1px solid #e5e8f0;
+      border-top: 1px solid var(--border);
       justify-content: space-around;   
       z-index: 100;
     }
@@ -212,7 +244,7 @@ defineEmits(['brand-click', 'open-notificaciones'])
     right: 0;
     height: 60px;
     background: white;
-    border-top: 1px solid #e5e8f0;
+    border-top: 1px solid var(--border);
     justify-content: space-around;
     align-items: center;
     z-index: 100;
@@ -225,7 +257,7 @@ defineEmits(['brand-click', 'open-notificaciones'])
     gap: 2px;
     font-size: 0.7rem;
     font-weight: 500;
-    color: #6366F1;
+    color: var(--accent);
     text-decoration: none;
     padding: 0.4rem 1rem;
     border-radius: 8px;
@@ -233,7 +265,7 @@ defineEmits(['brand-click', 'open-notificaciones'])
   }
 
   .bottom-nav-link:hover, .bottom-nav-link:active {
-    background: #6366F1;
+    background: var(--accent);
     color: white;
   }
 }

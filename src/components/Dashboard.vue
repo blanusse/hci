@@ -42,7 +42,7 @@
 
       <!-- Actividad reciente -->
       <div class="header-title">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3F51B5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-indigo)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         Actividad reciente
       </div>
       <div class="actividad-lista">
@@ -242,12 +242,12 @@ function abrirModal(item: any) {
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    background: linear-gradient(135deg, #1A237E 0%, #3F51B5 100%);
+    background: linear-gradient(135deg, var(--rut-btn-primary) 0%, var(--color-indigo) 100%);
     border-radius: 18px;
     padding: 22px 26px;
     margin-bottom: 28px;
     margin-top: 28px;
-    color: #fff;
+    color: var(--surface);
     box-shadow: 0 4px 20px rgba(26, 35, 126, .30);
 }
 
@@ -324,7 +324,7 @@ function abrirModal(item: any) {
 .hogares-header svg{
    width: 22px;
    height: 22px;
-   color: #3F51B5;
+   color: var(--color-indigo);
 }
 
 .hogares-cuadro{
@@ -437,7 +437,7 @@ function abrirModal(item: any) {
 .actividad-header svg {
     width: 22px;
     height: 22px;
-    color: #3F51B5;
+    color: var(--color-indigo);
 }
 
 .actividad-lista{
@@ -508,8 +508,8 @@ border-color: var(--accent);
 }
 
 .recent-icon.on {
-  background: #E5F5FE;
-  color: #0CA5E9;
+  background: var(--color-sky-light);
+  color: var(--color-sky);
 }
 
 .recent-badge {

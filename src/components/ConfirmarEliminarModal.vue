@@ -70,7 +70,7 @@ defineEmits(['confirm', 'cancel'])
    display: flex;
    align-items: center;
    justify-content: center;
-   color: #DC3545;
+   color: var(--color-red-dark);
 }
 
 .confirm-title {
@@ -115,7 +115,7 @@ defineEmits(['confirm', 'cancel'])
    padding: 10px 20px;
    border-radius: 10px;
    border: none;
-   background: #DC3545;
+   background: var(--color-red-dark);
    color: white;
    font-size: 1rem;
    font-weight: 700;
@@ -126,7 +126,7 @@ defineEmits(['confirm', 'cancel'])
 .btn-delete:hover { background: #c82333; }
 
 .confirm-error {
-   color: #DC3545;
+   color: var(--color-red-dark);
    font-size: 0.9rem;
    text-align: center;
    margin: 8px 0 0;

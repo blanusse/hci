@@ -524,7 +524,7 @@ async function resetPassword() {
 
 .auth-brand {
    flex: 0 0 45%;
-   background: linear-gradient(145deg, #0D1752 0%, #1A237E 35%, #283593 65%, #3F51B5 100%);
+   background: linear-gradient(145deg, #0D1752 0%, var(--rut-btn-primary) 35%, #283593 65%, var(--color-indigo) 100%);
    display: flex;
    align-items: center;
    justify-content: center;
@@ -551,7 +551,7 @@ async function resetPassword() {
 .auth-brand-title {
     font-size: 2rem;
     font-weight: 800;
-    color: #fff;
+    color: var(--surface);
     line-height: 1.25;
     margin-bottom: 16px;
     letter-spacing: -.02em;
@@ -583,7 +583,7 @@ async function resetPassword() {
 .auth-brand-name {
     font-size: 1.75rem;
     font-weight: 800;
-    color: #fff;
+    color: var(--surface);
     letter-spacing: -.02em;
 }
 
@@ -627,7 +627,7 @@ async function resetPassword() {
     display: flex;
     flex-direction: column;
     gap: 18px;
-    background: #fff;
+    background: var(--surface);
     border: 1.5px solid var(--border);
     border-radius: 20px;
     padding: 36px 32px;
@@ -695,7 +695,7 @@ async function resetPassword() {
 .auth-link-btn {
     background: transparent;
     border: none;
-    color: #3F51B5;
+    color: var(--color-indigo);
     font-size: 1.025rem;
     font-weight: 600;
     cursor: pointer;
@@ -735,8 +735,8 @@ async function resetPassword() {
     padding: 13px 20px;
     border-radius: 12px;
     border: none;
-    background: #1A237E;
-    color: #fff;
+    background: var(--rut-btn-primary);
+    color: var(--surface);
     font-size: 1.1rem;
     font-weight: 700;
     font-family: inherit;
@@ -831,7 +831,7 @@ async function resetPassword() {
     transition: color .15s, background .15s;
 }
 .auth-btn-ghost:hover {
-    background-color: #e5e6ec;
+    background-color: var(--bg);
 }
 
 
@@ -851,7 +851,7 @@ async function resetPassword() {
 .auth-verify-icon i, .auth-verify-icon svg {
     width: 28px;
     height: 28px;
-    color: #3F51B5;
+    color: var(--color-indigo);
 }
 
 </style>

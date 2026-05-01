@@ -483,8 +483,8 @@ async function confirmarBorrarCuarto() {
    flex-shrink: 0;
 }
 .hd-device-row.on .hd-device-icon {
-   background: #E5F5FE;
-   color: #0CA5E9;
+   background: var(--color-sky-light);
+   color: var(--color-sky);
 }
 
 .device-toggle {

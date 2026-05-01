@@ -78,19 +78,19 @@ const emit = defineEmits(['close', 'update:state'])
 const encendido = ref(props.device.state?.status === 'on')
 const intensidad = ref(props.device.state?.brightness ?? 80)
 const colorSeleccionado = ref(props.device.state?.color ?? 'Blanca')
-const colorPersonalizado = ref('#ffffff')
+const colorPersonalizado = ref('var(--surface)fff')
 
 const previewStyle = computed(() => {
    if (!encendido.value) return { background: 'var(--surface2)', color: 'var(--text)' }
    const baseColor = colorSeleccionado.value === 'Personalizar'
       ? colorPersonalizado.value
-      : swatches.find(s => s.label === colorSeleccionado.value)?.color ?? '#FFF8DC'
+      : swatches.find(s => s.label === colorSeleccionado.value)?.color ?? 'var(--surface)8DC'
    const alpha = Math.round((intensidad.value / 100) * 255).toString(16).padStart(2, '0')
    return { background: baseColor + alpha, color: 'var(--text)' }
 })
 
 const swatches = [
-   { label: 'Blanca',   color: '#FFFFFF', hex: '#FFFFFF' },
+   { label: 'Blanca',   color: 'var(--surface)', hex: 'var(--surface)' },
    { label: 'Natural',  color: '#FFF9E6', hex: '#FFF9E6' },
    { label: 'Cálida',   color: '#FFD580', hex: '#FFD580' },
    { label: 'Naranja',  color: '#FFA040', hex: '#FFA040' },
@@ -162,8 +162,8 @@ function onColorPersonalizado() {
    flex-shrink: 0;
 }
 .dev-icon.on{
-   background: #E5F5FE;
-   color: #0CA5E9;
+   background: var(--color-sky-light);
+   color: var(--color-sky);
 }
 .dev-icon.off { background: var(--surface2); color: var(--text-muted); }
 

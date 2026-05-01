@@ -396,8 +396,8 @@ async function toggleTodasLasLuces() {
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  background: #1a237e;
-  color: #fff;
+  background: var(--rut-btn-primary);
+  color: var(--surface);
   border: none;
   border-radius: 12px;
   font-size: 1.0938rem;
@@ -406,12 +406,12 @@ async function toggleTodasLasLuces() {
   cursor: pointer;
   transition: background-color 0.15s, transform 0.1s, box-shadow 0.15s;
   white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(26, 35, 126, 0.25);
+  box-shadow: 0 2px 8px rgba(99,102,241,0.25);
 }
 
 .sch-new-btn:hover {
-  background: #283593;
-  box-shadow: 0 4px 12px rgba(26, 35, 126, 0.35);
+  background: var(--rut-btn-primary-hover);
+  box-shadow: 0 4px 12px rgba(99,102,241,0.35);
 }
 
 .sch-new-btn:active {
@@ -436,23 +436,23 @@ async function toggleTodasLasLuces() {
   gap: 14px;
   padding: 14px 18px;
   border-radius: 18px;
-  border: 2px solid #d8dbef;
-  background: #fff;
-  color: #24324b;
+  border: 2px solid var(--bg);
+  background: var(--surface);
+  color: var(--text);
   cursor: pointer;
   text-align: left;
   transition: all 0.18s ease;
 }
 
 .rut-home-card:hover {
-  border-color: #b9c2ff;
-  box-shadow: 0 8px 18px rgba(99, 102, 241, 0.1);
+  border-color: var(--accent-mid);
+  box-shadow: 0 8px 18px var(--accent-light);
 }
 
 .rut-home-card.active {
   border-color: transparent;
   background: linear-gradient(135deg, #6466ea 0%, #6861e8 100%);
-  color: #fff;
+  color: var(--surface);
   box-shadow: 0 12px 24px rgba(79, 70, 229, 0.18);
 }
 
@@ -460,7 +460,7 @@ async function toggleTodasLasLuces() {
   width: 58px;
   height: 58px;
   border-radius: 17px;
-  border: 2px solid #cfd3ea;
+  border: 2px solid var(--border);
   background: rgba(255, 255, 255, 0.78);
   display: inline-flex;
   align-items: center;
@@ -476,7 +476,7 @@ async function toggleTodasLasLuces() {
 .rut-home-card-icon svg {
   width: 26px;
   height: 26px;
-  color: #111827;
+  color: var(--text);
 }
 
 .rut-home-card-copy {
@@ -494,7 +494,7 @@ async function toggleTodasLasLuces() {
 .rut-home-card-count {
   margin-top: 4px;
   font-size: 0.975rem;
-  color: #71819b;
+  color: var(--text-muted);
   font-weight: 600;
 }
 
@@ -509,15 +509,15 @@ async function toggleTodasLasLuces() {
   padding: 14px 18px;
   margin-bottom: 24px;
   border-radius: 18px;
-  border: 2px solid #d8dbef;
-  background: #fff;
+  border: 2px solid var(--bg);
+  background: var(--surface);
 }
 
 .rut-general-label {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: #657892;
+  color: var(--text-muted);
   font-size: 1.05rem;
   font-weight: 800;
   letter-spacing: 0.05em;
@@ -533,17 +533,17 @@ async function toggleTodasLasLuces() {
   align-items: center;
   gap: 10px;
   padding: 8px 12px;
-  border: 2px solid #d7d9ea;
+  border: 2px solid var(--border);
   border-radius: 999px;
-  background: #edeef8;
-  color: #23324b;
+  background: var(--surface);
+  color: var(--text);
   cursor: pointer;
   transition: all 0.18s ease;
 }
 
 .rut-general-toggle:hover {
-  border-color: #bfc7f4;
-  background: #f2f3fb;
+  border-color: var(--accent-mid);
+  background: var(--surface2);
 }
 
 .rut-general-toggle-icon {
@@ -553,7 +553,7 @@ async function toggleTodasLasLuces() {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #687b96;
+  color: var(--text-muted);
 }
 
 .rut-general-toggle-icon svg {
@@ -575,7 +575,7 @@ async function toggleTodasLasLuces() {
 
 .rut-general-toggle-sub {
   font-size: 0.9rem;
-  color: #71819b;
+  color: var(--text-muted);
   font-weight: 600;
 }
 
@@ -585,7 +585,7 @@ async function toggleTodasLasLuces() {
   width: 44px;
   height: 24px;
   border-radius: 12px;
-  background: #cbd5e1;
+  background: var(--toggle-off);
   transition: background-color 0.2s;
   margin: 10px auto 0px;
   flex-shrink: 0;
@@ -599,12 +599,12 @@ async function toggleTodasLasLuces() {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--surface);
   transition: transform 0.2s;
 }
 
 .toggle.on {
-  background: #10b981;
+  background: var(--success);
 }
 
 .toggle.on::after {
@@ -615,7 +615,7 @@ async function toggleTodasLasLuces() {
   width: 44px;
   height: 24px;
   margin-left: 6px;
-  background: #cbd5e1;
+  background: var(--toggle-off);
   pointer-events: none;
   border-radius: 12px;
 }
@@ -628,7 +628,7 @@ async function toggleTodasLasLuces() {
 }
 
 .toggle--lg.on {
-  background: #10b981;
+  background: var(--success);
 }
 
 .toggle--lg.on::after {
@@ -640,7 +640,7 @@ async function toggleTodasLasLuces() {
   align-items: center;
   gap: 10px;
   margin-bottom: 12px;
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 1.025rem;
   font-weight: 800;
   letter-spacing: 0.06em;
@@ -661,7 +661,7 @@ async function toggleTodasLasLuces() {
 
 .sch-card {
   background: var(--surface);
-  border: 2px solid #dfe5f3;
+  border: 2px solid var(--border);
   border-radius: 20px;
   padding: 18px 18px 14px;
   display: flex;
@@ -677,7 +677,7 @@ async function toggleTodasLasLuces() {
 
 .sch-card:hover {
   box-shadow: 0 12px 26px rgba(148, 163, 184, 0.14);
-  border-color: #c7d2fe;
+  border-color: var(--accent-mid);
   transform: translateY(-1px);
 }
 
@@ -696,8 +696,8 @@ async function toggleTodasLasLuces() {
   width: 48px;
   height: 48px;
   border-radius: 14px;
-  background: #f5f6fb;
-  border: 2px solid #b8bddc;
+  background: var(--surface2);
+  border: 2px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -708,14 +708,14 @@ async function toggleTodasLasLuces() {
 }
 
 .sch-card-icon.sch-icon--active {
-  background: #f5f6fb;
-  border-color: #b8bddc;
+  background: var(--surface2);
+  border-color: var(--border);
 }
 
 .sch-card-icon svg {
   width: 22px;
   height: 22px;
-  color: #253147;
+  color: var(--text);
 }
 
 .sch-card--disabled .sch-card-icon svg {
@@ -730,7 +730,7 @@ async function toggleTodasLasLuces() {
 .sch-card-name {
   font-size: 1.2rem;
   font-weight: 800;
-  color: #263247;
+  color: var(--text);
   line-height: 1.15;
 }
 
@@ -739,7 +739,7 @@ async function toggleTodasLasLuces() {
   align-items: center;
   gap: 5px;
   font-size: 0.95rem;
-  color: #667892;
+  color: var(--text-muted);
   margin-top: 6px;
   font-weight: 500;
 }
@@ -764,8 +764,8 @@ async function toggleTodasLasLuces() {
   width: 34px;
   height: 34px;
   border-radius: 11px;
-  background: #eff2f5;
-  color: #5f738d;
+  background: var(--surface2);
+  color: var(--text-muted);
 }
 
 .sch-act-chip svg {
@@ -775,7 +775,7 @@ async function toggleTodasLasLuces() {
 
 .sch-act-chip:nth-child(3n) {
   background: rgba(32, 192, 139, 0.1);
-  color: #0f9f83;
+  color: var(--success);
 }
 
 .sch-card-footer {
@@ -783,7 +783,7 @@ async function toggleTodasLasLuces() {
   align-items: center;
   justify-content: space-between;
   padding-top: 12px;
-  border-top: 2px solid #e6eaf7;
+  border-top: 2px solid var(--border);
   gap: 8px;
   margin-top: auto;
   min-height: 44px;
@@ -794,7 +794,7 @@ async function toggleTodasLasLuces() {
   align-items: center;
   gap: 6px;
   font-size: 0.9rem;
-  color: #667892;
+  color: var(--text-muted);
   flex: 1;
   min-width: 0;
   font-weight: 700;
@@ -849,7 +849,7 @@ async function toggleTodasLasLuces() {
 }
 
 .sch-btn--run i {
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .sch-btn--run:hover {
@@ -863,7 +863,7 @@ async function toggleTodasLasLuces() {
 }
 
 .sch-btn--edit i {
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .sch-btn--edit:hover {
@@ -871,7 +871,7 @@ async function toggleTodasLasLuces() {
 }
 
 .sch-btn--delete i {
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .sch-btn--delete:hover {

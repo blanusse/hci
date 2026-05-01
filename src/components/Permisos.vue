@@ -314,7 +314,7 @@ display: block;
 }
 .energia-home-btn.active .energia-home-btn-icon {
     background: var(--accent);
-    color: #fff;
+    color: var(--surface);
 }
 /* ── PERMISSIONS PANEL ── */
 .perm-section-label {
@@ -350,7 +350,7 @@ display: block;
     color: var(--text-muted);
 }
 .perm-member-avatar svg { width: 18px; height: 18px; }
-.perm-avatar--owner { background: rgba(26,35,126,.12); color: #1A237E; }
+.perm-avatar--owner { background: rgba(26,35,126,.12); color: var(--rut-btn-primary); }
 .perm-avatar--owner svg { width: 16px; height: 16px; }
 .perm-member-info { flex: 1; min-width: 0; }
 .perm-member-name { font-size: 1.375rem; font-weight: 700; color: var(--text); }
@@ -360,7 +360,7 @@ display: block;
     padding: 3px 9px; border-radius: 20px;
     flex-shrink: 0;
 }
-.perm-role-badge--owner { background: rgba(26,35,126,.12); color: #1A237E; }
+.perm-role-badge--owner { background: rgba(26,35,126,.12); color: var(--rut-btn-primary); }
 .perm-action-btn {
     width: 40px; height: 40px;
     border-radius: 10px;
@@ -373,8 +373,8 @@ display: block;
     transition: background .15s, color .15s;
 }
 .perm-action-btn svg { width: 20px; height: 20px; }
-.perm-action-btn:hover { background: rgba(63,81,181,.1); color: #3F51B5; }
-.perm-action-btn--danger:hover { background: #FEE2E2; color: #EF4444; }
+.perm-action-btn:hover { background: rgba(63,81,181,.1); color: var(--color-indigo); }
+.perm-action-btn--danger:hover { background: #FEE2E2; color: var(--color-red); }
 .perm-empty {
     display: flex; flex-direction: column; align-items: center;
     gap: 8px; text-align: center; padding: 40px 20px;
@@ -413,7 +413,7 @@ display: block;
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
 }
-.perm-restrict-dev-icon svg { width: 13px; height: 13px; color: #3F51B5; }
+.perm-restrict-dev-icon svg { width: 13px; height: 13px; color: var(--color-indigo); }
 .perm-restrict-dev-name { flex: 1; font-size: 1.0625rem; font-weight: 500; color: var(--text); }
 .perm-restrict-badge {
     font-size: 1.0625rem; font-weight: 600;
@@ -421,7 +421,7 @@ display: block;
     flex-shrink: 0;
 }
 .perm-restrict-badge--on  { background: rgba(0,137,123,.1); color: #00897B; }
-.perm-restrict-badge--off { background: rgba(239,68,68,.1);  color: #EF4444; }
+.perm-restrict-badge--off { background: rgba(239,68,68,.1);  color: var(--color-red); }
 .hd-edit-rooms-btn svg { width: 15px; height: 15px; }
 
 /* ── MODAL ── */
@@ -436,7 +436,7 @@ display: block;
   z-index: 1000;
 }
 .modal {
-  background: var(--surface, #fff);
+  background: var(--surface, var(--surface));
   border-radius: 20px;
   width: 90%;
   max-width: 460px;
@@ -535,13 +535,13 @@ display: block;
 .modal-btn--secondary:hover { background: var(--border); }
 .modal-btn--primary {
   background: var(--accent);
-  color: #fff;
+  color: var(--surface);
 }
 .modal-btn--primary:hover { opacity: .88; }
 .modal-btn--primary:disabled { opacity: .45; cursor: not-allowed; }
 .modal-error {
   font-size: 1rem;
-  color: #EF4444;
+  color: var(--color-red);
   background: rgba(239,68,68,.08);
   border-radius: 8px;
   padding: 8px 12px;
