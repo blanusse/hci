@@ -12,7 +12,7 @@
             </button>
             <h2 class="hd-home-name">{{ homeName }}</h2>
          </div>
-         <button class="hd-edit-btn" @click="modoEdicion= !modoEdicion">
+         <button class="hd-edit-btn" @click="modoEdicion= !modoEdicion" :class="{'hd-edit-btn-active' : modoEdicion}">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/>
                <path d="m15 5 4 4"/>
@@ -298,7 +298,29 @@ async function confirmarBorrarCuarto() {
 .hd-edit-btn:hover {
     background: var(--danger-light);
     border: 2px solid rgb(246, 0, 0);
+}
 
+.hd-edit-btn-active {
+   background-color: var(--success-light);
+   color: var(--success);
+   height: 34px;
+    padding: 0 12px;
+    border-radius: 10px;
+    border: 1.5px solid var(--success);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 1rem;
+    font-weight: 700;
+    transition: background .15s, color .15s, border-color .15s, box-shadow .15s;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.hd-edit-btn-active:hover {
+   background-color: var(--success-light);
+    border: 2.2px solid var(--success);
 }
 
 

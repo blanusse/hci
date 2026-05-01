@@ -21,6 +21,10 @@ export async function getRoomDevices(roomId: string){
    return await apiGet(`/rooms/${roomId}/devices`)
 }
 
+export async function getHomeMembers(homeId: string) {
+   return await apiGet(`/homes/${homeId}/share`)
+}
+
 //creators
 
 export async function createHome(name: string, icon: string){
@@ -30,6 +34,12 @@ export async function createHome(name: string, icon: string){
 export async function createRoomInHome(home: Object, name: string, icon: string =''){
    return await apiPost(`/rooms`, {name,home, metadata: {icon}})
 }
+
+
+export async function shareHome(homeId: string, emails: string[]) {
+   return await apiPost(`/homes/${homeId}/share`, { emails })
+}
+
 
 //deletes
 
@@ -45,11 +55,9 @@ export async function deleteRoomFromHome(roomId: string){
    return await apiDelete(`/homes/rooms/${roomId}`)
 }
 
-
-
-
-export async function shareHome(homeId: string, emails: string[]) {
-   return await apiPost(`/homes/${homeId}/share`, { emails })
+export async function removeHomeMember(homeId: string, userMail: string) {
+   console.log(homeId, userMail)
+   return await apiDelete(`/homes/${homeId}/share/`, {emails: [userMail]})
 }
 
 

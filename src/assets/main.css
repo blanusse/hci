@@ -32,9 +32,10 @@ body {
     --text: #1e293b;
     --text-muted: #64748b;
     --success: #2e7d32;
-    /* --success-light: rgba(46,125,50,.1); */
+    --success-light: rgba(46,125,50,.1);
     --danger: #c62828;
     --danger-light: rgba(198,40,40,.08);
+    font-size: clamp(12px, 1.2vw, 16px);
 }
 
 
@@ -112,4 +113,17 @@ button:disabled {
    font-size: 0.95rem;
    font-weight: 600;
    margin: 0;
+}
+
+
+.header-title {
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 16px;
+    margin-top: 32px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text);
+    letter-spacing: -.02em;
 }

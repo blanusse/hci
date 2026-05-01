@@ -1,9 +1,9 @@
 <template>
-  <main class="main page-content">
-    <div class="screen active">
+  <main class="main">
+    <div class="screen active page-content">
       <div class="sch-page-header">
         <div>
-          <h2 class="section-title">Rutinas</h2>
+          <h2 class="header-title">Rutinas</h2>
           <p style="color: var(--text-muted); font-size: 1.06rem; font-weight: 600; margin: 0">
             Automatizaciones programadas para tus dispositivos
           </p>

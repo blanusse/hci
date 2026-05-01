@@ -20,12 +20,12 @@
     </div>
 
     <div class="navbar-actions">
-      <button class="icon-btn">
+      <button class="icon-btn" @click="$emit('open-notificaciones')">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/>
           <path d="M13.73 21a2 2 0 01-3.46 0"/>
         </svg>
-        <span v-if="notifications > 0" class="badge">{{ notifications }}</span>
+        <span v-if="sinLeer > 0" class="badge">{{ sinLeer }}</span>  
       </button>
       <button class="icon-btn">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -42,23 +42,18 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { useNotificacionesStore } from '@/stores/notificaciones'
+import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
-const notifications = ref(0)
+const notifStore = useNotificacionesStore()
+const {sinLeer} = storeToRefs(notifStore)
+
+defineEmits(['brand-click', 'open-notificaciones'])
 
 
-//TODO: hacer cuando se use la API -> levantar notificaciones
-// onMounted(async () => {
-//   try {
-//     const res = await fetch('https://tu-api.com/navbar')
-//     const data = await res.json()
-//     notifications.value = data.notifications
-//   } catch (err) {
-//     console.error('Error cargando navbar:', err)
-//   }
-// })
+
 </script>
 
 <style scoped>
@@ -199,7 +194,7 @@ const notifications = ref(0)
       bottom: 0;
       left: 0;                    
       right: 0;             
-      height: 60px;
+      height: 50px;
       background: white;
       border-top: 1px solid #e5e8f0;
       justify-content: space-around;   

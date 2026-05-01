@@ -40,9 +40,9 @@ export async function apiGet(ruta: string){
    }
 }
 
-export async function apiDelete(ruta :string) {
+export async function apiDelete(ruta :string, body: object={}) {
    try{
-      const res = await api.delete(ruta)
+      const res = await api.delete(ruta, {data: body})
       return res.data
    }
    catch(e: any){

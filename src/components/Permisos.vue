@@ -2,8 +2,8 @@
   <div class="screen active page-content" > 
     <div class="sch-page-header">
       <div>
-        <h2 class="section-title" style="margin-bottom: 2px;">Permisos</h2>
-        <p style="color: var(--text-muted); font-size: 0.85rem;">
+        <h2 class="header-title">Permisos</h2>
+        <p class="perm-subtitle">
           Gestioná quién tiene acceso a cada hogar y qué puede controlar
         </p>
       </div>
@@ -79,24 +79,11 @@
 
     <!---->
 
-    <div class="perm-section-label" style="margin-top: 20px;">Miembros con acceso</div>
+    <div class="perm-section-label">Miembros con acceso</div>
 
-    <div class="perm-empty">
+    <div v-if="members.length === 0" class="perm-empty">
       <div class="perm-empty-icon">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          data-lucide="users"
-          aria-hidden="true"
-          class="lucide lucide-users"
-        >
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
           <path d="M16 3.128a4 4 0 0 1 0 7.744"></path>
           <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
@@ -105,21 +92,8 @@
       </div>
       <p class="perm-empty-title">Sin miembros todavía</p>
       <p class="perm-empty-sub">Agregá usuarios para compartir este hogar con tu familia.</p>
-      <button class="btn btn-primary" style="margin-top: 4px;" @click="showModal = true">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          data-lucide="user-plus"
-          aria-hidden="true"
-          class="lucide lucide-user-plus"
-        >
+      <button class="btn btn-primary btn-add-member" @click="showModal = true">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
           <circle cx="9" cy="7" r="4"></circle>
           <line x1="19" x2="19" y1="8" y2="14"></line>
@@ -128,6 +102,33 @@
         Agregar miembro
       </button>
     </div>
+
+    <div v-for="m in members" :key="m.id" class="perm-member-card">
+      <div class="perm-member-avatar">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+        </svg>
+      </div>
+      <div class="perm-member-info">
+        <div class="perm-member-name">{{ m.name }}</div>
+        <div class="perm-member-sub">{{ m.email }}</div>
+      </div>
+      <button class="perm-action-btn perm-action-btn--danger" @click="quitarMiembro(m.email)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <button v-if="members.length > 0" class="btn btn-primary btn-add-member" @click="showModal = true">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+        <circle cx="9" cy="7" r="4"></circle>
+        <line x1="19" x2="19" y1="8" y2="14"></line>
+        <line x1="22" x2="16" y1="11" y2="11"></line>
+      </svg>
+      Agregar miembro
+    </button>
   </div>
 
   <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
@@ -166,8 +167,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { getHomes, shareHome } from '@/services/homeService'
+import { ref, onMounted, watch } from 'vue'
+import { getHomes, shareHome, getHomeMembers, removeHomeMember } from '@/services/homeService'
+
 
 interface Home { id: string; name: string }
 
@@ -179,6 +181,13 @@ const email = ref('')
 const sending = ref(false)
 const inviteError = ref('')
 const inviteSuccess = ref(false)
+
+const members = ref<any[]>([])
+
+watch(selectedHome, async(home) =>{
+  if(!home) return
+  members.value = await getHomeMembers(home.id)
+})
 
 onMounted(async () => {
   try {
@@ -207,10 +216,16 @@ async function sendInvitation() {
     inviteSuccess.value = true
     email.value = ''
   } catch (err: any) {
-    inviteError.value = err?.response?.data?.description ?? 'No se pudo enviar la invitación.'
+    inviteError.value = err?.response?.data?.error?.description ?? 'No se pudo enviar la invitación.'
   } finally {
     sending.value = false
   }
+}
+
+async function quitarMiembro(userMail: string){
+  if(!selectedHome.value) return
+  await removeHomeMember(selectedHome.value.id, userMail)
+  members.value = members.value.filter(m => m.email !==userMail)
 }
 </script>
 
@@ -252,7 +267,7 @@ display: block;
     display: flex;
     align-items: center;
     gap: 5px;
-    font-size: .85rem;
+    font-size: 1.0625rem;
     font-weight: 600;
     color: var(--text-muted);
     flex-shrink: 0;
@@ -267,7 +282,7 @@ display: block;
     border-radius: 12px;
     border: 1.5px solid var(--border);
     background: var(--surface);
-    font-size: .9rem;
+    font-size: 1.125rem;
     color: var(--text-muted);
     cursor: pointer;
     font-weight: 600;
@@ -303,7 +318,7 @@ display: block;
 }
 /* ── PERMISSIONS PANEL ── */
 .perm-section-label {
-    font-size: .72rem;
+    font-size: 0.9rem;
     font-weight: 700;
     color: var(--text-muted);
     text-transform: uppercase;
@@ -338,10 +353,10 @@ display: block;
 .perm-avatar--owner { background: rgba(26,35,126,.12); color: #1A237E; }
 .perm-avatar--owner svg { width: 16px; height: 16px; }
 .perm-member-info { flex: 1; min-width: 0; }
-.perm-member-name { font-size: .88rem; font-weight: 700; color: var(--text); }
-.perm-member-sub { font-size: .75rem; color: var(--text-muted); margin-top: 2px; }
+.perm-member-name { font-size: 1.375rem; font-weight: 700; color: var(--text); }
+.perm-member-sub { font-size: 0.9375rem; color: var(--text-muted); margin-top: 2px; }
 .perm-role-badge {
-    font-size: .7rem; font-weight: 700;
+    font-size: 1.09375rem; font-weight: 700;
     padding: 3px 9px; border-radius: 20px;
     flex-shrink: 0;
 }
@@ -372,14 +387,14 @@ display: block;
     margin-bottom: 4px;
 }
 .perm-empty-icon svg { width: 28px; height: 28px; color: var(--text-muted); }
-.perm-empty-title { font-size: 1rem; font-weight: 700; color: var(--text); }
-.perm-empty-sub { font-size: .82rem; color: var(--text-muted); max-width: 260px; line-height: 1.5; }
+.perm-empty-title { font-size: 1.25rem; font-weight: 700; color: var(--text); }
+.perm-empty-sub { font-size: 1.025rem; color: var(--text-muted); max-width: 260px; line-height: 1.5; }
 
 /* Restrict devices modal */
 .perm-restrict-group { padding: 0 0 4px; }
 .perm-restrict-room-label {
     display: flex; align-items: center; gap: 6px;
-    font-size: .72rem; font-weight: 700;
+    font-size: 0.9rem; font-weight: 700;
     color: var(--text-muted);
     text-transform: uppercase; letter-spacing: .06em;
     padding: 12px 20px 6px;
@@ -399,9 +414,9 @@ display: block;
     flex-shrink: 0;
 }
 .perm-restrict-dev-icon svg { width: 13px; height: 13px; color: #3F51B5; }
-.perm-restrict-dev-name { flex: 1; font-size: .85rem; font-weight: 500; color: var(--text); }
+.perm-restrict-dev-name { flex: 1; font-size: 1.0625rem; font-weight: 500; color: var(--text); }
 .perm-restrict-badge {
-    font-size: .68rem; font-weight: 600;
+    font-size: 1.0625rem; font-weight: 600;
     padding: 2px 7px; border-radius: 10px;
     flex-shrink: 0;
 }
@@ -436,7 +451,7 @@ display: block;
   border-bottom: 1px solid var(--border);
 }
 .modal-title {
-  font-size: 1.1rem;
+  font-size: 1.375rem;
   font-weight: 700;
   color: var(--text);
 }
@@ -458,13 +473,13 @@ display: block;
   gap: 16px;
 }
 .modal-desc {
-  font-size: .88rem;
+  font-size: 1.375rem;
   color: var(--text-muted);
   line-height: 1.5;
 }
 .modal-field { display: flex; flex-direction: column; gap: 6px; }
 .modal-field-label {
-  font-size: .72rem;
+  font-size: 0.9rem;
   font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
@@ -476,7 +491,7 @@ display: block;
   border-radius: 10px;
   border: 1.5px solid var(--border);
   background: var(--surface);
-  font-size: .9rem;
+  font-size: 1.125rem;
   color: var(--text);
   font-family: inherit;
   outline: none;
@@ -487,7 +502,7 @@ display: block;
   display: flex;
   align-items: flex-start;
   gap: 7px;
-  font-size: .77rem;
+  font-size: 0.9625rem;
   color: var(--text-muted);
   background: rgba(99,102,241,.06);
   border-radius: 8px;
@@ -506,7 +521,7 @@ display: block;
   display: flex; align-items: center; gap: 7px;
   padding: 10px 20px;
   border-radius: 10px;
-  font-size: .875rem;
+  font-size: 1.09375rem;
   font-weight: 600;
   cursor: pointer;
   border: none;
@@ -525,14 +540,14 @@ display: block;
 .modal-btn--primary:hover { opacity: .88; }
 .modal-btn--primary:disabled { opacity: .45; cursor: not-allowed; }
 .modal-error {
-  font-size: .8rem;
+  font-size: 1rem;
   color: #EF4444;
   background: rgba(239,68,68,.08);
   border-radius: 8px;
   padding: 8px 12px;
 }
 .modal-success {
-  font-size: .8rem;
+  font-size: 1rem;
   color: #00897B;
   background: rgba(0,137,123,.08);
   border-radius: 8px;
@@ -552,7 +567,7 @@ background: var(--accent-mid);
 .btn {
 padding: 10px 22px;
 border-radius: 10px;
-font-size: 0.875rem;
+font-size: 1.09375rem;
 font-weight: 600;
 cursor: pointer;
 transition: all 0.2s;
@@ -560,6 +575,17 @@ border: none;
 font-family: inherit;
 }
 
+.section-title {
+  margin-bottom: 2px;
+}
 
+.perm-subtitle {
+  color: var(--text-muted);
+  font-size: 1.0625rem;
+}
+
+.btn-add-member {
+  margin-top: 12px;
+}
 
 </style>

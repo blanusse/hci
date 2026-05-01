@@ -12,7 +12,7 @@
       </div>
 
       <!-- Hogares -->
-      <div class="hogares-header">
+      <div class="header-title">
          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="house" aria-hidden="true" class="lucide lucide-house"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
          Mis Hogares
       </div>
@@ -41,7 +41,7 @@
       </div>
 
       <!-- Actividad reciente -->
-      <div class="actividad-header">
+      <div class="header-title">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3F51B5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         Actividad reciente
       </div>
@@ -92,9 +92,7 @@ import { deviceIcons } from '@/utils/deviceIcons'
 import { getHomes, createHome, getRoomDevices, getRooms, deleteHome } from '@/services/homeService'
 import { getDeviceLogs, getDevice, getDeviceTypeName } from '@/services/deviceService'
 import { getUserInfo } from '@/services/userService'
-import { connectSocket } from '@/services/socketService'
 
-import LamparaModal from '@/components/dispositivos/LamparaModal.vue'
 import NuevoHogarModal from './NuevoHogarModal.vue'
 import ConfirmarEliminarModal from './ConfirmarEliminarModal.vue'
 import DeviceModalRouter from '@/components/dispositivos/DeviceModalRouter.vue'
@@ -113,7 +111,6 @@ const router = useRouter()
 const hogares = ref<any[]>([]) //hogares del usuario
 const usuario = ref('')  //nombre del usuario
 
-const socket = connectSocket() //se conecta para recibir señales
 
 const mostrarNuevoHogar = ref(false)
 
@@ -121,13 +118,13 @@ const hogarAEliminar = ref<any>(null)
 
 const defaultHouseIcon = ref(`<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>`)
 
-socket.on('deviceEvent', (event)=>{
-   console.log(event)
-   actividad.value.unshift(event)
-   if(actividad.value.length > 10){
-      actividad.value.pop()
-   }
-})
+// socket.on('deviceEvent', (event)=>{
+//    console.log(event)
+//    actividad.value.unshift(event)
+//    if(actividad.value.length > 10){
+//       actividad.value.pop()
+//    }
+// })
 
 
 async function cargarHogares() {                                                                                                                
@@ -332,18 +329,17 @@ function abrirModal(item: any) {
 
 .hogares-cuadro{
    display: grid;
-   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-   gap: 16px;
+   grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+   gap: 1rem;
 }
 
 
 .hogar-card{
    background: var(--surface);
    border: 1.5px solid var(--border);
-   border-radius: 16px;
-   /* overflow: hidden; */
+   border-radius: 1rem;
    cursor: pointer;
-   padding: 20px;
+   padding: 1.25rem;
    transition: box-shadow 0.2s, border-color 0.2s, transform 0.15s;
 }
 
@@ -356,22 +352,22 @@ function abrirModal(item: any) {
 
 .hogar-head {
   position: relative;
-  min-height: 140px;
+  min-height: 8.75rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 16px;
+  padding: 1rem;
 }
 
 .hogar-icon {
   position: absolute;
   top: 0px;
   left: 0px;
-  width: 38px;
-  height: 38px;
+  width: 2.375rem;
+  height: 2.375rem;
   background: var(--accent-light);
-  border-radius: 10px;
+  border-radius: 0.625rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -391,7 +387,7 @@ function abrirModal(item: any) {
 
 .hogar-name {
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   font-size: 2rem;
@@ -457,11 +453,11 @@ function abrirModal(item: any) {
 .recent-item{
    display: flex;
    align-items: center;
-   gap: 14px;
-   padding: 12px 16px;
+   gap: 0.875rem;
+   padding: 0.75rem 1rem;
    background: var(--surface);
    border: 1px solid var(--border);
-   border-radius: 12px;
+   border-radius: 0.75rem;
    box-shadow: 0 1px 3px rgba(0, 0, 0, .03);
    cursor: pointer;
    color: black;
@@ -497,9 +493,9 @@ border-color: var(--accent);
 }
 
 .recent-icon {
-  width: 42px;
-  height: 42px;
-  border-radius: 10px;
+  width: 2.625rem;
+  height: 2.625rem;
+  border-radius: 0.625rem;
   display: flex;
   align-items: center;
   justify-content: center;
