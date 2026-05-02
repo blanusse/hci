@@ -2,7 +2,7 @@
   <DeviceModal @close="$emit('close')">
 
     <template #header>
-      <span class="modal-title">Nueva rutina</span>
+      <span class="modal-title">{{ rutinaEditar ? 'Editar rutina' : 'Nueva rutina' }}</span>
     </template>
 
     <div class="steps">
@@ -186,7 +186,7 @@
         </button>
         <button class="btn-primary" @click="crearRutina" :disabled="creando || !accionesAgregadas.length">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-          {{ creando ? 'Creando…' : 'Crear rutina' }}
+          {{ creando ? (rutinaEditar ? 'Guardando…' : 'Creando…') : (rutinaEditar ? 'Guardar cambios' : 'Crear rutina') }}
         </button>
       </template>
     </div>
@@ -195,11 +195,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import DeviceModal from './DeviceModal.vue'
-import { createRoutine } from '@/services/routineService'
+import { createRoutine, updateRoutine } from '@/services/routineService'
 import { getRooms, getRoomDevices } from '@/services/homeService'
-import { getDeviceTypeName, getDeviceTypeById } from '@/services/deviceService'
+import { getDeviceTypeName, getDeviceTypeById, getDevice } from '@/services/deviceService'
 import { ICONS, ROUTINE_ICONS } from '@/utils/routineIcons'
 
 interface AccionRutina {
@@ -210,8 +210,11 @@ interface AccionRutina {
   tipoDispositivo: string
 }
 
-const props = defineProps<{ hogares: { id: string; name: string }[] }>()
-const emit = defineEmits(['close', 'created'])
+const props = defineProps<{
+  hogares: { id: string; name: string }[]
+  rutinaEditar?: any
+}>()
+const emit = defineEmits(['close', 'created', 'updated'])
 
 const paso = ref(1)
 const nombre = ref('')
@@ -237,6 +240,7 @@ const accionesDisponibles = ref<string[]>([])
 const cargandoHabitaciones = ref(false)
 const cargandoDispositivos = ref(false)
 const cargandoAcciones = ref(false)
+const cargandoAccionesEdit = ref(false)
 
 const dias = [
   { key: 'lun', label: 'Lun' },
@@ -247,6 +251,40 @@ const dias = [
   { key: 'sab', label: 'Sáb' },
   { key: 'dom', label: 'Dom' },
 ]
+
+onMounted(async () => {
+  const r = props.rutinaEditar
+  if (!r) return
+  nombre.value = r.nombre
+  iconSeleccionado.value = r.icon ?? 'clock'
+  tipoTrigger.value = r.tipoTrigger ?? 'scheduled'
+  hora.value = r.hora ?? '08:00'
+  diasSeleccionados.value = r.dias ?? ['lun', 'mar', 'mie', 'jue', 'vie']
+  if (r.hogarId) hogarSeleccionado.value = r.hogarId
+
+  if (!r.actions?.length) return
+  cargandoAccionesEdit.value = true
+  try {
+    const acciones = await Promise.all(
+      r.actions.map(async (a: any) => {
+        const device = await getDevice(a.device.id)
+        const tipoDispositivo = await getDeviceTypeName(device.type.id).catch(() => 'lamp')
+        return {
+          device: { id: device.id },
+          actionName: a.actionName,
+          params: a.params ?? [],
+          nombreDispositivo: device.name,
+          tipoDispositivo,
+        }
+      })
+    )
+    accionesAgregadas.value = acciones
+  } catch (e) {
+    console.error('Error cargando acciones de la rutina:', e)
+  } finally {
+    cargandoAccionesEdit.value = false
+  }
+})
 
 function toggleDia(key: string) {
   const idx = diasSeleccionados.value.indexOf(key)
@@ -341,20 +379,26 @@ async function crearRutina() {
   creando.value = true
   try {
     const actions = accionesAgregadas.value.map(({ device, actionName, params }) => ({ device, actionName, params }))
-    const nueva = await createRoutine(nombre.value.trim(), actions, {
+    const metadata = {
       icon: iconSeleccionado.value,
       triggerIcon: tipoTrigger.value === 'manual' ? 'mouse-pointer-2' : 'clock',
       triggerText: buildTriggerText(),
       tipoTrigger: tipoTrigger.value,
       ...(tipoTrigger.value === 'scheduled' && { hora: hora.value, dias: diasSeleccionados.value }),
-      activa: true,
+      activa: props.rutinaEditar?.activa ?? true,
       hogarId: hogarSeleccionado.value,
       acciones: [...new Set(accionesAgregadas.value.map(a => a.tipoDispositivo))],
-    })
-    emit('created', nueva)
+    }
+    if (props.rutinaEditar) {
+      const actualizada = await updateRoutine(props.rutinaEditar.id, nombre.value.trim(), actions, metadata)
+      emit('updated', actualizada)
+    } else {
+      const nueva = await createRoutine(nombre.value.trim(), actions, metadata)
+      emit('created', nueva)
+    }
     emit('close')
   } catch (e: any) {
-    errorMsg.value = e.response?.data?.error?.description ?? 'Error al crear la rutina'
+    errorMsg.value = e.response?.data?.error?.description ?? (props.rutinaEditar ? 'Error al guardar la rutina' : 'Error al crear la rutina')
   } finally {
     creando.value = false
   }

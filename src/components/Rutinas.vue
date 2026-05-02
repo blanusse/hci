@@ -204,7 +204,7 @@
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="ICONS['play']"></svg>
                 </button>
-                <button class="sch-btn sch-btn--edit" title="Editar">
+                <button class="sch-btn sch-btn--edit" title="Editar" @click.stop="rutinaAEditar = rutina">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="ICONS['sliders-horizontal']"></svg>
                 </button>
                 <button class="sch-btn sch-btn--delete" title="Eliminar" @click.stop="rutinaAEliminar = rutina">
@@ -219,10 +219,12 @@
   </div>
 
   <NuevaRutinaModal
-    v-if="mostrarNuevaRutina"
+    v-if="mostrarNuevaRutina || rutinaAEditar"
     :hogares="hogares"
-    @close="mostrarNuevaRutina = false"
+    :rutinaEditar="rutinaAEditar ?? undefined"
+    @close="mostrarNuevaRutina = false; rutinaAEditar = null"
     @created="onRutinaCreada"
+    @updated="onRutinaActualizada"
   />
 
   <ConfirmarEliminarModal
@@ -296,6 +298,7 @@ const hogares = ref<Home[]>([]);
 const generalActiva = ref(true);
 const mostrarNuevaRutina = ref(false);
 const rutinaAEliminar = ref<Rutina | null>(null);
+const rutinaAEditar = ref<Rutina | null>(null);
 const errorEliminar = ref('');
 const selectedHomeId = ref<string | null>(null);
 const selectedHome = computed(() =>
@@ -320,6 +323,12 @@ onMounted(async () => {
 
 function onRutinaCreada(nueva: any) {
   rutinas.value.push(mapRutina(nueva));
+}
+
+function onRutinaActualizada(actualizada: any) {
+  const idx = rutinas.value.findIndex(r => r.id === actualizada.id);
+  if (idx !== -1) rutinas.value[idx] = mapRutina(actualizada);
+  rutinaAEditar.value = null;
 }
 
 async function eliminarRutina() {
@@ -720,9 +729,7 @@ async function toggleTodasLasLuces() {
   color: var(--text);
 }
 
-.sch-card--disabled .sch-card-icon svg {
-  color: var(--text-muted);
-}
+.sch-card--disabled .sch-card-icon svg {  color: var(--text-muted); }
 
 .sch-card-meta {
   flex: 1;
