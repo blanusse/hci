@@ -178,3 +178,9 @@ button:disabled {
     color: var(--text);
     letter-spacing: -.02em;
 }
+
+.section-title {
+    font-size: 1.375rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
