@@ -96,10 +96,9 @@ function toggleDark() {
 
 <style scoped>
 .navbar {
-  position: fixed;
-  top: 0px;
-  left: 0px;
-  right: 0px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
   display: flex;
   align-items: center;
   gap: 2rem;

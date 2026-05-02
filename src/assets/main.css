@@ -14,7 +14,7 @@ body {
 
 
 .page-content {
-    padding: 60px 24px;
+    padding: 28px 24px;
     max-width: 1200px;
     min-width: 100px;
     margin: 0 auto;
@@ -118,7 +118,7 @@ button:disabled {
    font-weight: 700;
    font-family: inherit;
    cursor: pointer;
-   transition: background .15s, border-color .15s;
+   transition: background-color .15s, border-color .15s;
 }
 
 .add-card-btn:hover{
@@ -141,7 +141,7 @@ button:disabled {
   align-items: center;
   justify-content: center;
   color: var(--text-muted);
-  transition: background 0.15s, color 0.15s;
+  transition: background-color 0.15s, color 0.15s;
 }
 .delete-btn svg {
     width: 14px;
@@ -170,8 +170,8 @@ button:disabled {
 .header-title {
     font-size: 2rem;
     font-weight: 800;
-    margin-bottom: 16px;
-    margin-top: 32px;
+    margin-top: 2px;
+    margin-bottom: 2px;
     display: flex;
     align-items: center;
     gap: 10px;

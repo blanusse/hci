@@ -1,9 +1,9 @@
 <template>
-  <main class="main">
+  <div class="main">
     <div class="screen active page-content">
       <div class="sch-page-header">
         <div>
-          <h2 class="header-title">Rutinas</h2>
+          <div class="header-title">Rutinas</div>
           <p style="color: var(--text-muted); font-size: 1.06rem; font-weight: 600; margin: 0">
             Automatizaciones programadas para tus dispositivos
           </p>
@@ -216,7 +216,7 @@
         </div>
       </div>
     </div>
-  </main>
+  </div>
 
   <NuevaRutinaModal
     v-if="mostrarNuevaRutina"
@@ -374,13 +374,6 @@ async function toggleTodasLasLuces() {
 </script>
 
 <style scoped>
-.section-title {
-  font-size: 1.65rem;
-  font-weight: 800;
-  color: var(--text);
-  margin-top: 0;
-  margin-bottom: 2px;
-}
 
 .sch-page-header {
   display: flex;
@@ -436,7 +429,7 @@ async function toggleTodasLasLuces() {
   gap: 14px;
   padding: 14px 18px;
   border-radius: 18px;
-  border: 2px solid var(--bg);
+  border: 2px solid #d8dbef;
   background: var(--surface);
   color: var(--text);
   cursor: pointer;
@@ -486,7 +479,7 @@ async function toggleTodasLasLuces() {
 }
 
 .rut-home-card-name {
-  font-size: 1.1875rem;
+  font-size: 1.2rem;
   font-weight: 800;
   line-height: 1.1;
 }
@@ -509,7 +502,7 @@ async function toggleTodasLasLuces() {
   padding: 14px 18px;
   margin-bottom: 24px;
   border-radius: 18px;
-  border: 2px solid var(--bg);
+  border: 2px solid #d8dbef;
   background: var(--surface);
 }
 
@@ -661,7 +654,7 @@ async function toggleTodasLasLuces() {
 
 .sch-card {
   background: var(--surface);
-  border: 2px solid var(--border);
+  border: 2px solid #d8dbef;
   border-radius: 20px;
   padding: 18px 18px 14px;
   display: flex;
