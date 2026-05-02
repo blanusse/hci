@@ -60,7 +60,7 @@
           <span class="rut-home-card-copy">
             <span class="rut-home-card-name">{{ hogar.name }}</span>
             <span class="rut-home-card-count"
-              >{{ rutinas.length }} rutinas</span>
+              >{{ rutinas.filter(r => r.hogarId === hogar.id).length }} rutinas</span>
           </span>
         </button>
       </div>
@@ -131,7 +131,7 @@
         </button>
       </div>
       <!---->
-      <div v-if="rutinas.length > 0" style="margin-bottom: 24px">
+      <div v-if="rutinasFiltradas.length > 0" style="margin-bottom: 24px">
         <div class="rut-group-label">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -154,7 +154,7 @@
         </div>
         <div class="sch-grid">
           <div
-            v-for="rutina in rutinas"
+            v-for="rutina in rutinasFiltradas"
             :key="rutina.id"
             class="sch-card"
             :class="{ 'sch-card--disabled': rutina.deshabilitada }"
@@ -262,6 +262,7 @@ interface Rutina {
   acciones: string[];
   ultimaEjecucion: string;
   actions: any[];
+  hogarId: string;
 }
 
 /* adaptador entre el idioma de la API y el idioma del template. */
@@ -282,6 +283,7 @@ function mapRutina(r: any): Rutina {
     acciones: m.acciones ?? [],
     ultimaEjecucion: m.ultimaEjecucion ?? 'Nunca',
     actions: r.actions ?? [],
+    hogarId: m.hogarId ?? '',
   };
 }
 
@@ -301,6 +303,9 @@ const selectedHome = computed(() =>
 );
 
 const rutinas = ref<Rutina[]>([]);
+const rutinasFiltradas = computed(() =>
+  rutinas.value.filter(r => r.hogarId === selectedHomeId.value)
+);
 
 onMounted(async () => {
   try {

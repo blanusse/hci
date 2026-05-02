@@ -44,6 +44,10 @@ export async function getDeviceType(deviceType: string){
    return await apiGet(`devicetypes/${id}`)
 }
 
+export async function getDeviceTypeById(typeId: string){
+   return await apiGet(`devicetypes/${typeId}`)
+}
+
 export async function getDeviceLogs(limit: number, offset:number) {
    return await apiGet(`/devices/logs/limit/${limit}/offset/${offset}`)
 }

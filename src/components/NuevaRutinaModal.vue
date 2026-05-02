@@ -106,7 +106,7 @@
               <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/>
             </svg>
             <span>{{ ac.nombreDispositivo }}</span>
-            <span class="accion-chip-action">{{ ac.actionName === 'turnOn' ? 'Encender' : 'Apagar' }}</span>
+            <span class="accion-chip-action">{{ labelAccion(ac.actionName) }}</span>
             <button class="accion-chip-remove" @click="quitarAccion(i)">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M18 6L6 18M6 6l12 12"/>
@@ -139,7 +139,7 @@
               <button
                 v-for="dev in dispositivos" :key="dev.id"
                 class="preset-btn preset-btn--sm" :class="{ selected: dispositivoSeleccionado?.id === dev.id }"
-                @click="dispositivoSeleccionado = dev"
+                @click="seleccionarDispositivo(dev)"
               >
                 {{ dev.name }}
               </button>
@@ -148,9 +148,16 @@
 
           <div v-if="dispositivoSeleccionado" class="field" style="margin-bottom: 12px">
             <label class="field-label" style="font-size: 0.75rem">Acción</label>
-            <div class="presets">
-              <button class="preset-btn preset-btn--sm" :class="{ selected: accionSeleccionada === 'turnOn' }" @click="accionSeleccionada = 'turnOn'">Encender</button>
-              <button class="preset-btn preset-btn--sm" :class="{ selected: accionSeleccionada === 'turnOff' }" @click="accionSeleccionada = 'turnOff'">Apagar</button>
+            <div v-if="cargandoAcciones" class="loading-text">Cargando...</div>
+            <div v-else class="presets">
+              <button
+                v-for="accion in accionesDisponibles" :key="accion"
+                class="preset-btn preset-btn--sm"
+                :class="{ selected: accionSeleccionada === accion }"
+                @click="accionSeleccionada = accion"
+              >
+                {{ labelAccion(accion) }}
+              </button>
             </div>
           </div>
 
@@ -192,7 +199,7 @@ import { ref } from 'vue'
 import DeviceModal from './DeviceModal.vue'
 import { createRoutine } from '@/services/routineService'
 import { getRooms, getRoomDevices } from '@/services/homeService'
-import { getDeviceTypeName } from '@/services/deviceService'
+import { getDeviceTypeName, getDeviceTypeById } from '@/services/deviceService'
 import { ICONS, ROUTINE_ICONS } from '@/utils/routineIcons'
 
 interface AccionRutina {
@@ -216,14 +223,20 @@ const diasSeleccionados = ref<string[]>(['lun', 'mar', 'mie', 'jue', 'vie'])
 const errorMsg = ref('')
 const creando = ref(false)
 
+function labelAccion(name: string): string {
+  return name.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase()).trim()
+}
+
 const habitaciones = ref<any[]>([])
 const dispositivos = ref<any[]>([])
 const habitacionSeleccionada = ref('')
 const dispositivoSeleccionado = ref<any>(null)
 const accionSeleccionada = ref('')
 const accionesAgregadas = ref<AccionRutina[]>([])
+const accionesDisponibles = ref<string[]>([])
 const cargandoHabitaciones = ref(false)
 const cargandoDispositivos = ref(false)
+const cargandoAcciones = ref(false)
 
 const dias = [
   { key: 'lun', label: 'Lun' },
@@ -266,6 +279,7 @@ async function seleccionarHabitacion(id: string) {
   habitacionSeleccionada.value = id
   dispositivoSeleccionado.value = null
   accionSeleccionada.value = ''
+  accionesDisponibles.value = []
   dispositivos.value = []
   cargandoDispositivos.value = true
   try {
@@ -274,6 +288,21 @@ async function seleccionarHabitacion(id: string) {
     dispositivos.value = []
   } finally {
     cargandoDispositivos.value = false
+  }
+}
+
+async function seleccionarDispositivo(dev: any) {
+  dispositivoSeleccionado.value = dev
+  accionSeleccionada.value = ''
+  accionesDisponibles.value = []
+  cargandoAcciones.value = true
+  try {
+    const tipo = await getDeviceTypeById(dev.type.id)
+    accionesDisponibles.value = (tipo.actions ?? []).map((a: any) => a.name)
+  } catch {
+    accionesDisponibles.value = ['turnOn', 'turnOff']
+  } finally {
+    cargandoAcciones.value = false
   }
 }
 
@@ -319,6 +348,7 @@ async function crearRutina() {
       tipoTrigger: tipoTrigger.value,
       ...(tipoTrigger.value === 'scheduled' && { hora: hora.value, dias: diasSeleccionados.value }),
       activa: true,
+      hogarId: hogarSeleccionado.value,
       acciones: [...new Set(accionesAgregadas.value.map(a => a.tipoDispositivo))],
     })
     emit('created', nueva)
