@@ -151,13 +151,23 @@
             <div v-if="cargandoAcciones" class="loading-text">Cargando...</div>
             <div v-else class="presets">
               <button
-                v-for="accion in accionesDisponibles" :key="accion"
+                v-for="accion in accionesDisponibles" :key="accion.name"
                 class="preset-btn preset-btn--sm"
-                :class="{ selected: accionSeleccionada === accion }"
-                @click="accionSeleccionada = accion"
+                :class="{ selected: accionSeleccionada?.name === accion.name }"
+                @click="accionSeleccionada = accion; accionParamValues = {}"
               >
-                {{ labelAccion(accion) }}
+                {{ labelAccion(accion.name) }}
               </button>
+            </div>
+          </div>
+
+          <div v-if="accionSeleccionada && accionSeleccionada.params.length > 0" class="field" style="margin-bottom: 12px">
+            <label class="field-label" style="font-size: 0.75rem">Parámetros</label>
+            <div v-for="param in accionSeleccionada.params" :key="param.name" class="param-row">
+              <label class="param-label">{{ labelAccion(param.name) }}</label>
+              <input v-if="param.type === 'integer'" type="number" class="field-input param-input" v-model="accionParamValues[param.name]" :placeholder="param.name" />
+              <input v-else-if="param.name.toLowerCase().includes('color')" type="color" class="param-input-color" v-model="accionParamValues[param.name]" />
+              <input v-else type="text" class="field-input param-input" v-model="accionParamValues[param.name]" :placeholder="param.name" />
             </div>
           </div>
 
@@ -234,9 +244,12 @@ const habitaciones = ref<any[]>([])
 const dispositivos = ref<any[]>([])
 const habitacionSeleccionada = ref('')
 const dispositivoSeleccionado = ref<any>(null)
-const accionSeleccionada = ref('')
+interface ActionDef { name: string; params: { name: string; type: string }[] }
+
+const accionSeleccionada = ref<ActionDef | null>(null)
+const accionParamValues = ref<Record<string, any>>({})
 const accionesAgregadas = ref<AccionRutina[]>([])
-const accionesDisponibles = ref<string[]>([])
+const accionesDisponibles = ref<ActionDef[]>([])
 const cargandoHabitaciones = ref(false)
 const cargandoDispositivos = ref(false)
 const cargandoAcciones = ref(false)
@@ -316,7 +329,7 @@ async function siguiente() {
 async function seleccionarHabitacion(id: string) {
   habitacionSeleccionada.value = id
   dispositivoSeleccionado.value = null
-  accionSeleccionada.value = ''
+  accionSeleccionada.value = null
   accionesDisponibles.value = []
   dispositivos.value = []
   cargandoDispositivos.value = true
@@ -331,14 +344,15 @@ async function seleccionarHabitacion(id: string) {
 
 async function seleccionarDispositivo(dev: any) {
   dispositivoSeleccionado.value = dev
-  accionSeleccionada.value = ''
+  accionSeleccionada.value = null
+  accionParamValues.value = {}
   accionesDisponibles.value = []
   cargandoAcciones.value = true
   try {
     const tipo = await getDeviceTypeById(dev.type.id)
-    accionesDisponibles.value = (tipo.actions ?? []).map((a: any) => a.name)
+    accionesDisponibles.value = (tipo.actions ?? []).map((a: any) => ({ name: a.name, params: a.params ?? [] }))
   } catch {
-    accionesDisponibles.value = ['turnOn', 'turnOff']
+    accionesDisponibles.value = [{ name: 'turnOn', params: [] }, { name: 'turnOff', params: [] }]
   } finally {
     cargandoAcciones.value = false
   }
@@ -347,15 +361,20 @@ async function seleccionarDispositivo(dev: any) {
 async function agregarAccion() {
   if (!dispositivoSeleccionado.value || !accionSeleccionada.value) return
   const tipoDispositivo = await getDeviceTypeName(dispositivoSeleccionado.value.type.id).catch(() => 'lamp')
+  const params = (accionSeleccionada.value.params ?? []).map((p: { name: string; type: string }) => {
+    const val = accionParamValues.value[p.name]
+    return p.type === 'integer' ? parseInt(val) : val
+  })
   accionesAgregadas.value.push({
     device: { id: dispositivoSeleccionado.value.id },
-    actionName: accionSeleccionada.value,
-    params: [],
+    actionName: accionSeleccionada.value.name,
+    params,
     nombreDispositivo: dispositivoSeleccionado.value.name,
     tipoDispositivo,
   })
   dispositivoSeleccionado.value = null
-  accionSeleccionada.value = ''
+  accionSeleccionada.value = null
+  accionParamValues.value = {}
 }
 
 function quitarAccion(i: number) {
@@ -493,6 +512,11 @@ async function crearRutina() {
   font-family: inherit; cursor: pointer; transition: all 0.15s;
 }
 .btn-agregar:hover { background: var(--accent-light); }
+
+.param-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.param-label { font-size: 0.82rem; font-weight: 600; color: var(--text-muted); min-width: 80px; }
+.param-input { flex: 1; }
+.param-input-color { width: 48px; height: 36px; border-radius: 8px; border: 1.5px solid var(--border); cursor: pointer; padding: 2px; background: var(--surface); }
 
 .auth-error { color: var(--danger); font-size: 0.9rem; margin-top: -8px; }
 
