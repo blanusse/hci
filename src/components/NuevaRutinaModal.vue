@@ -13,11 +13,11 @@
       <div class="step-line"></div>
       <div class="step" :class="{ active: paso === 2 }">
         <span class="step-num">2</span>
-        <span class="step-label">Horario y acciones </span>
+        <span class="step-label">Horario y acciones</span>
       </div>
     </div>
 
-    <!-- PASO 1: configuracion inicial -->
+    <!-- PASO 1 -->
     <template v-if="paso === 1">
       <div class="field">
         <label class="field-label">Nombre de la rutina</label>
@@ -28,7 +28,7 @@
         <label class="field-label">Hogar</label>
         <div v-if="!hogares?.length" class="no-homes">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-html="ICONS['house']"></svg>
-          No tenés hogares creados.   
+          No tenés hogares creados.
         </div>
         <div v-else class="presets">
           <button
@@ -56,7 +56,7 @@
       </div>
     </template>
 
-    <!-- PASO 2: Horario y acciones -->
+    <!-- PASO 2 -->
     <template v-if="paso === 2">
       <div class="field">
         <label class="field-label">Tipo de activación</label>
@@ -95,6 +95,71 @@
           </div>
         </div>
       </template>
+
+      <!-- ACCIONES -->
+      <div class="field">
+        <label class="field-label">Acciones</label>
+
+        <div v-if="accionesAgregadas.length > 0" class="acciones-list">
+          <div v-for="(ac, i) in accionesAgregadas" :key="i" class="accion-chip">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/>
+            </svg>
+            <span>{{ ac.nombreDispositivo }}</span>
+            <span class="accion-chip-action">{{ ac.actionName === 'turnOn' ? 'Encender' : 'Apagar' }}</span>
+            <button class="accion-chip-remove" @click="quitarAccion(i)">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 6L6 18M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="nueva-accion">
+          <div class="field" style="margin-bottom: 12px">
+            <label class="field-label" style="font-size: 0.75rem">Habitación</label>
+            <div v-if="cargandoHabitaciones" class="loading-text">Cargando...</div>
+            <div v-else-if="!habitaciones.length" class="loading-text">Sin habitaciones</div>
+            <div v-else class="presets">
+              <button
+                v-for="hab in habitaciones" :key="hab.id"
+                class="preset-btn preset-btn--sm" :class="{ selected: habitacionSeleccionada === hab.id }"
+                @click="seleccionarHabitacion(hab.id)"
+              >
+                {{ hab.name }}
+              </button>
+            </div>
+          </div>
+
+          <div v-if="habitacionSeleccionada" class="field" style="margin-bottom: 12px">
+            <label class="field-label" style="font-size: 0.75rem">Dispositivo</label>
+            <div v-if="cargandoDispositivos" class="loading-text">Cargando...</div>
+            <div v-else-if="!dispositivos.length" class="loading-text">Sin dispositivos en esta habitación</div>
+            <div v-else class="presets">
+              <button
+                v-for="dev in dispositivos" :key="dev.id"
+                class="preset-btn preset-btn--sm" :class="{ selected: dispositivoSeleccionado?.id === dev.id }"
+                @click="dispositivoSeleccionado = dev"
+              >
+                {{ dev.name }}
+              </button>
+            </div>
+          </div>
+
+          <div v-if="dispositivoSeleccionado" class="field" style="margin-bottom: 12px">
+            <label class="field-label" style="font-size: 0.75rem">Acción</label>
+            <div class="presets">
+              <button class="preset-btn preset-btn--sm" :class="{ selected: accionSeleccionada === 'turnOn' }" @click="accionSeleccionada = 'turnOn'">Encender</button>
+              <button class="preset-btn preset-btn--sm" :class="{ selected: accionSeleccionada === 'turnOff' }" @click="accionSeleccionada = 'turnOff'">Apagar</button>
+            </div>
+          </div>
+
+          <button v-if="dispositivoSeleccionado && accionSeleccionada" class="btn-agregar" @click="agregarAccion">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+            Agregar acción
+          </button>
+        </div>
+      </div>
     </template>
 
     <p v-if="errorMsg" class="auth-error">{{ errorMsg }}</p>
@@ -112,7 +177,7 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
           Atrás
         </button>
-        <button class="btn-primary" @click="crearRutina" :disabled="creando">
+        <button class="btn-primary" @click="crearRutina" :disabled="creando || !accionesAgregadas.length">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
           {{ creando ? 'Creando…' : 'Crear rutina' }}
         </button>
@@ -126,7 +191,15 @@
 import { ref } from 'vue'
 import DeviceModal from './DeviceModal.vue'
 import { createRoutine } from '@/services/routineService'
+import { getRooms, getRoomDevices } from '@/services/homeService'
 import { ICONS, ROUTINE_ICONS } from '@/utils/routineIcons'
+
+interface AccionRutina {
+  device: { id: string }
+  actionName: string
+  params: any[]
+  nombreDispositivo: string
+}
 
 const props = defineProps<{ hogares: { id: string; name: string }[] }>()
 const emit = defineEmits(['close', 'created'])
@@ -140,6 +213,15 @@ const hora = ref('08:00')
 const diasSeleccionados = ref<string[]>(['lun', 'mar', 'mie', 'jue', 'vie'])
 const errorMsg = ref('')
 const creando = ref(false)
+
+const habitaciones = ref<any[]>([])
+const dispositivos = ref<any[]>([])
+const habitacionSeleccionada = ref('')
+const dispositivoSeleccionado = ref<any>(null)
+const accionSeleccionada = ref('')
+const accionesAgregadas = ref<AccionRutina[]>([])
+const cargandoHabitaciones = ref(false)
+const cargandoDispositivos = ref(false)
 
 const dias = [
   { key: 'lun', label: 'Lun' },
@@ -157,7 +239,7 @@ function toggleDia(key: string) {
   else diasSeleccionados.value.push(key)
 }
 
-function siguiente() {
+async function siguiente() {
   if (nombre.value.trim().length < 3) {
     errorMsg.value = 'El nombre debe tener al menos 3 caracteres.'
     return
@@ -168,12 +250,49 @@ function siguiente() {
   }
   errorMsg.value = ''
   paso.value = 2
+  cargandoHabitaciones.value = true
+  try {
+    habitaciones.value = await getRooms(hogarSeleccionado.value)
+  } catch {
+    habitaciones.value = []
+  } finally {
+    cargandoHabitaciones.value = false
+  }
 }
 
-/* Genera un texto descriptivo del horario */
+async function seleccionarHabitacion(id: string) {
+  habitacionSeleccionada.value = id
+  dispositivoSeleccionado.value = null
+  accionSeleccionada.value = ''
+  dispositivos.value = []
+  cargandoDispositivos.value = true
+  try {
+    dispositivos.value = await getRoomDevices(id)
+  } catch {
+    dispositivos.value = []
+  } finally {
+    cargandoDispositivos.value = false
+  }
+}
+
+function agregarAccion() {
+  if (!dispositivoSeleccionado.value || !accionSeleccionada.value) return
+  accionesAgregadas.value.push({
+    device: { id: dispositivoSeleccionado.value.id },
+    actionName: accionSeleccionada.value,
+    params: [],
+    nombreDispositivo: dispositivoSeleccionado.value.name,
+  })
+  dispositivoSeleccionado.value = null
+  accionSeleccionada.value = ''
+}
+
+function quitarAccion(i: number) {
+  accionesAgregadas.value.splice(i, 1)
+}
+
 function buildTriggerText() {
   if (tipoTrigger.value === 'manual') return 'Ejecución manual'
-  const todosLosDias = ['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom']
   const labelsMap: Record<string, string> = { lun: 'Lun', mar: 'Mar', mie: 'Mié', jue: 'Jue', vie: 'Vie', sab: 'Sáb', dom: 'Dom' }
   if (diasSeleccionados.value.length === 7) return `${hora.value} · Todos los días`
   if (JSON.stringify(diasSeleccionados.value.slice().sort()) === JSON.stringify(['lun','mar','mie','jue','vie']))
@@ -182,9 +301,14 @@ function buildTriggerText() {
 }
 
 async function crearRutina() {
+  if (!accionesAgregadas.value.length) {
+    errorMsg.value = 'Agregá al menos una acción.'
+    return
+  }
   creando.value = true
   try {
-    const nueva = await createRoutine(nombre.value.trim(), [], {
+    const actions = accionesAgregadas.value.map(({ device, actionName, params }) => ({ device, actionName, params }))
+    const nueva = await createRoutine(nombre.value.trim(), actions, {
       icon: iconSeleccionado.value,
       triggerIcon: tipoTrigger.value === 'manual' ? 'mouse-pointer-2' : 'clock',
       triggerText: buildTriggerText(),
@@ -239,6 +363,7 @@ async function crearRutina() {
   font-size: 1rem; font-family: inherit; color: var(--text); outline: none;
 }
 .field-input:focus { border-color: var(--accent); }
+.field-input[type="time"] { color-scheme: light; color: var(--text); }
 
 .icon-picker { display: flex; flex-wrap: wrap; gap: 8px; }
 .icon-opt {
@@ -260,6 +385,36 @@ async function crearRutina() {
 }
 .preset-btn:hover { border-color: var(--accent); color: var(--accent); }
 .preset-btn.selected { background: var(--accent-light); border-color: var(--accent); color: var(--accent); }
+.preset-btn--sm { padding: 6px 12px; font-size: 0.85rem; }
+
+.nueva-accion {
+  padding: 14px; border-radius: 12px;
+  border: 1.5px dashed var(--border); background: var(--surface2);
+}
+
+.loading-text { font-size: 0.85rem; color: var(--text-muted); }
+
+.acciones-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.accion-chip {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; border-radius: 10px;
+  background: var(--accent-light); border: 1.5px solid var(--accent);
+  color: var(--accent); font-size: 0.9rem; font-weight: 600;
+}
+.accion-chip-action { margin-left: auto; font-size: 0.8rem; opacity: 0.8; }
+.accion-chip-remove {
+  background: none; border: none; cursor: pointer;
+  color: var(--accent); display: flex; align-items: center; padding: 0;
+}
+
+.btn-agregar {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 20px;
+  border: 1.5px solid var(--accent); background: transparent;
+  color: var(--accent); font-size: 0.9rem; font-weight: 600;
+  font-family: inherit; cursor: pointer; transition: all 0.15s;
+}
+.btn-agregar:hover { background: var(--accent-light); }
 
 .auth-error { color: var(--danger); font-size: 0.9rem; margin-top: -8px; }
 

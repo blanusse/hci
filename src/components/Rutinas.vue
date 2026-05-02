@@ -260,6 +260,7 @@ interface Rutina {
   deshabilitada: boolean;
   acciones: string[];
   ultimaEjecucion: string;
+  actions: any[];
 }
 
 /* adaptador entre el idioma de la API y el idioma del template. */
@@ -279,6 +280,7 @@ function mapRutina(r: any): Rutina {
     deshabilitada: !activa,
     acciones: m.acciones ?? [],
     ultimaEjecucion: m.ultimaEjecucion ?? 'Nunca',
+    actions: r.actions ?? [],
   };
 }
 
@@ -332,7 +334,7 @@ async function toggleRutina(rutina: Rutina) {
   rutina.activa = nuevoEstado;
   rutina.deshabilitada = !nuevoEstado;
   try {
-    await updateRoutine(rutina.id, rutina.nombre, [], {
+    await updateRoutine(rutina.id, rutina.nombre, rutina.actions, {
       icon: rutina.icon,
       triggerIcon: rutina.triggerIcon,
       triggerText: rutina.triggerText,
@@ -690,7 +692,7 @@ async function toggleTodasLasLuces() {
   height: 48px;
   border-radius: 14px;
   background: var(--surface2);
-  border: 2px solid var(--border);
+  border: 2px solid #b8bddc;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -701,8 +703,8 @@ async function toggleTodasLasLuces() {
 }
 
 .sch-card-icon.sch-icon--active {
-  background: var(--surface2);
-  border-color: var(--border);
+  background: #f5f6fb;;
+  border-color: #b8bddc;
 }
 
 .sch-card-icon svg {
