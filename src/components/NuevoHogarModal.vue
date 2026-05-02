@@ -220,7 +220,7 @@ async function crearHogar() {
    emit('close')
 }
    catch(e:any){
-      errorMsg.value=e.response?.data?.description ?? 'Error al crear el hogar'
+      errorMsg.value=e.response?.data?.error?.description ?? 'Error al crear el hogar'
    }
 }
 </script>

@@ -12,7 +12,7 @@ export const useSocketStore = defineStore('socket', () => {
       const auth = useAuthStore()
       if (!auth.token) return
 
-      socket.value = io('https://hci.it.itba.edu.ar/', {
+      socket.value = io('http://localhost:8081', {
          transports: ['polling', 'websocket'],
          reconnection: false,
          auth: { token: auth.token, apiKey: import.meta.env.VITE_API_KEY?.replace('sk_', '') }

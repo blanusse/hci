@@ -275,7 +275,7 @@
          <p v-if="errorMsg" class="auth-error">{{ errorMsg }}</p>
 
 
-            <button class="auth-btn-primary" @click="forgotPassword()">
+            <button class="auth-btn-primary" @click="forgotPasswordLocal()">
                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="send" aria-hidden="true" class="lucide lucide-send"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"></path><path d="m21.854 2.147-10.94 10.939"></path></svg>
                    Enviar código de recuperación
             </button>
@@ -323,7 +323,7 @@
             <p v-if="errorMsg" class="auth-error">{{ errorMsg }}</p>
 
 
-               <button class="auth-btn-primary" @click="resetPassword()">
+               <button class="auth-btn-primary" @click="resetPasswordLocal()">
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="save" aria-hidden="true" class="lucide lucide-save"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"></path><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"></path><path d="M7 3v4a1 1 0 0 0 1 1h7"></path></svg>
                   Restablecer contraseña
                </button>
@@ -339,8 +339,8 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { apiPost } from '@/utils/api'
 import { useAuthStore } from '@/stores/auth'
+import { registerUser, sendVerification, logInUser, resetPassword, forgotPassword, veryAccount } from '@/services/userService'
 
 const eyeOpen = `<path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/>`
 const eyeClosed = `<path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/>`
@@ -374,15 +374,12 @@ async function iniciarSesion() {
    errorMsg.value = ''
    cargando.value = true
    try {
-      const data = await apiPost('/users/login', { email: email.value, password: password.value })
-
+      const data = await logInUser(email.value, password.value)
       if (data.error) {
          errorMsg.value = data.error.description
       } else {
-         // Login exitoso: guardar token y navegar al dashboard
-         auth.setToken(data.token) //guarda el token en la ""base de datos""
-         console.log(data.token)
-         router.push('/Dashboard') //lo mando al dashboard
+         auth.setToken(data.token)
+         router.push('/Dashboard')
       }
    } catch (e: any){
       errorMsg.value = e.response?.data?.error?.description ?? 'No se pudo conectar al servidor.'
@@ -397,7 +394,7 @@ async function registrarse(){
      return
   }
    try {
-      const data = await apiPost('/users/register', { email: email.value, password: password.value, name: name.value, metadata: {} })
+      const data = await registerUser(email.value, password.value, name.value)
 
       if (data.error) {
          errorMsg.value = data.error.description
@@ -413,67 +410,51 @@ async function registrarse(){
 
 async function sendVerifMail(){
    try {
-      const data = await apiPost('/users/send-verification', { email: email.value})
-      // console.log(data)
-
-      if (data.error) {
-         errorMsg.value = data.error.description
-      } else {
-         //se mando el codigo bien
-         // codigoVerif.value=data.code
-      }
-   }
-   catch (e: any){
+      const data = await sendVerification(email.value)
+      if (data.error) errorMsg.value = data.error.description
+   } catch (e: any){
       errorMsg.value = e.response?.data?.error?.description ?? 'No se pudo conectar al servidor.'
    }
 }
 
 async function verifyCode(){
    try {
-      const data = await apiPost('/users/verify-account', {code: inputCode.value})
-
+      const data = await veryAccount(inputCode.value)
       if (data.error) {
          errorMsg.value = data.error.description
       } else {
-         //se ingreso el codigo correcto
-         console.log('check')
-         vista.value='login' 
+         vista.value = 'login'
       }
-   }
-   catch (e: any){
+   } catch (e: any){
       errorMsg.value = e.response?.data?.error?.description ?? 'No se pudo conectar al servidor.'
    }
 }
 
-async function forgotPassword(){
+async function forgotPasswordLocal(){
    try {
-      const data = await apiPost('/users/forgot-password', {email: email.value})
-
+      const data = await forgotPassword(email.value)
       if (data.error) {
          errorMsg.value = data.error.description
       } else {
-         // codigoVerif.value = data.value
          password.value = ''
          vista.value = 'cambiarPswrd'
       }
-   }
-   catch (e: any){
+   } catch (e: any){
       errorMsg.value = e.response?.data?.error?.description ?? 'No se pudo conectar al servidor.'
    }
 }
 
-async function resetPassword() {
+async function resetPasswordLocal() {
    if (password.value != repeatPassword.value){
      errorMsg.value = 'Las contraseñas deben coincidir'
      return
    }
    try {
-      const data = await apiPost('/users/reset-password', {code: inputCode.value, password: repeatPassword.value})
+      const data = await resetPassword(inputCode.value, repeatPassword.value)
 
       if (data.error) {
          errorMsg.value = data.error.description
       } else {
-         // codigoVerif.value = data.value
          vista.value = 'login'
       }
    }

@@ -202,8 +202,18 @@
     <link rel="icon" href="/favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome to Vuetify 4</title>
-    <script type="module" crossorigin src="/assets/index-DVeNVk8v.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-CM4f2hno.css">
+    <script>
+      (function() {
+        var saved = localStorage.getItem('theme');
+        if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+        } else if (saved === 'light') {
+          document.documentElement.classList.add('light');
+        }
+      })();
+    </script>
+    <script type="module" crossorigin src="/assets/index-BecMBKxr.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-BiQMvaXa.css">
   </head>
   <body>
     <div id="app"></div>

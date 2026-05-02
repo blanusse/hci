@@ -43,20 +43,19 @@
           <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
         </svg>
       </button>
-      <button class="icon-btn">
-        <svg width="28" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
-        </svg>
+      <button class="icon-btn avatar-btn" @click="$emit('open-perfil')">
+        <span class="avatar-initials">{{ initials }}</span>
       </button>
     </div>
   </nav>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useNotificacionesStore } from '@/stores/notificaciones'
 import { storeToRefs } from 'pinia'
 import { useRouter, useRoute } from 'vue-router'
+import { getUserInfo } from '@/services/userService'
 
 const router = useRouter()
 const notifStore = useNotificacionesStore()
@@ -64,17 +63,25 @@ const { sinLeer } = storeToRefs(notifStore)
 
 const route = useRoute()
 
-defineEmits(['brand-click', 'open-notificaciones'])
+defineEmits(['brand-click', 'open-notificaciones', 'open-perfil'])
 
 const saved = localStorage.getItem('theme')
 const isDark = ref(
   saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)
 )
 
-onMounted(() => {
-  if (isDark.value) {
-    document.documentElement.classList.add('dark')
-  }
+const userName = ref('')
+const initials = computed(() => {
+  if (!userName.value) return '?'
+  return userName.value.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
+})
+
+onMounted(async () => {
+  if (isDark.value) document.documentElement.classList.add('dark')
+  try {
+    const user = await getUserInfo()
+    userName.value = user?.name ?? ''
+  } catch {}
 })
 
 function toggleDark() {
@@ -220,6 +227,21 @@ function toggleDark() {
   transition: background 0.15s;
 }
 .icon-btn:hover { background: var(--surface2); }
+
+.avatar-btn {
+  background: var(--accent) !important;
+  width: 34px;
+  height: 34px;
+}
+.avatar-btn:hover { opacity: 0.85; background: var(--accent) !important; }
+
+.avatar-initials {
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  pointer-events: none;
+}
 
 .badge {
   position: absolute;

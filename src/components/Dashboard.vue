@@ -475,6 +475,7 @@ border-color: var(--accent);
 .recent-device{
    font-size: 1.15rem;
    font-weight: 600;
+   color: var(--text)
 }
 
 .recent-location{

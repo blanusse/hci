@@ -1,8 +1,9 @@
 <template>
   <v-app>
     <v-main>
-      <Navbar v-if="route.path !== '/'" @brand-click="$router.push('/dashboard')"  @open-notificaciones="mostrarNotificaciones = true"/>
+      <Navbar v-if="route.path !== '/'" @brand-click="$router.push('/dashboard')" @open-notificaciones="mostrarNotificaciones = true" @open-perfil="mostrarPerfil = true"/>
       <NotificacionesPanel v-if="mostrarNotificaciones" @close="mostrarNotificaciones = false" />
+      <PerfilPanel v-if="mostrarPerfil" @close="mostrarPerfil = false" />
       <RouterView />
     </v-main>
   </v-app>
@@ -14,9 +15,11 @@ import { useRoute } from 'vue-router'
 import { useSocketStore } from '@/stores/socket'
 import { ref, watch } from 'vue'
 import NotificacionesPanel from '@/components/NotificacionesPanel.vue'
+import PerfilPanel from '@/components/PerfilPanel.vue'
 import { useNotificacionesStore } from './stores/notificaciones'
 
 const mostrarNotificaciones = ref(false)
+const mostrarPerfil = ref(false)
 const route = useRoute()
 const socketStore = useSocketStore()
 const notificacionesStore = useNotificacionesStore()
