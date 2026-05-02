@@ -2,7 +2,7 @@
   <DeviceModal @close="$emit('close')">
 
     <template #header>
-      <span class="modal-title">{{ 'Nueva rutina' }}</span>
+      <span class="modal-title">{{ rutinaEditar ? 'Editar rutina' : 'Nueva rutina' }}</span>
     </template>
 
     <div class="steps">
@@ -13,11 +13,11 @@
       <div class="step-line"></div>
       <div class="step" :class="{ active: paso === 2 }">
         <span class="step-num">2</span>
-        <span class="step-label">Horario y acciones </span>
+        <span class="step-label">Horario y acciones</span>
       </div>
     </div>
 
-    <!-- PASO 1: configuracion inicial -->
+    <!-- PASO 1 -->
     <template v-if="paso === 1">
       <div class="field">
         <label class="field-label">Nombre de la rutina</label>
@@ -28,7 +28,7 @@
         <label class="field-label">Hogar</label>
         <div v-if="!hogares?.length" class="no-homes">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-html="ICONS['house']"></svg>
-          No tenés hogares creados.   
+          No tenés hogares creados.
         </div>
         <div v-else class="presets">
           <button
@@ -56,7 +56,7 @@
       </div>
     </template>
 
-    <!-- PASO 2: Horario y acciones -->
+    <!-- PASO 2 -->
     <template v-if="paso === 2">
       <div class="field">
         <label class="field-label">Tipo de activación</label>
@@ -95,6 +95,88 @@
           </div>
         </div>
       </template>
+
+      <!-- ACCIONES -->
+      <div class="field">
+        <label class="field-label">Acciones</label>
+
+        <div v-if="accionesAgregadas.length > 0" class="acciones-list">
+          <div v-for="(ac, i) in accionesAgregadas" :key="i" class="accion-chip">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/>
+            </svg>
+            <span>{{ ac.nombreDispositivo }}</span>
+            <span class="accion-chip-action">{{ labelAccion(ac.actionName) }}</span>
+            <button class="accion-chip-remove" @click="quitarAccion(i)">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 6L6 18M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="nueva-accion">
+          <div class="field" style="margin-bottom: 12px">
+            <label class="field-label" style="font-size: 0.75rem">Habitación</label>
+            <div v-if="cargandoHabitaciones" class="loading-text">Cargando...</div>
+            <div v-else-if="!habitaciones.length" class="loading-text">Sin habitaciones</div>
+            <div v-else class="presets">
+              <button
+                v-for="hab in habitaciones" :key="hab.id"
+                class="preset-btn preset-btn--sm" :class="{ selected: habitacionSeleccionada === hab.id }"
+                @click="seleccionarHabitacion(hab.id)"
+              >
+                {{ hab.name }}
+              </button>
+            </div>
+          </div>
+
+          <div v-if="habitacionSeleccionada" class="field" style="margin-bottom: 12px">
+            <label class="field-label" style="font-size: 0.75rem">Dispositivo</label>
+            <div v-if="cargandoDispositivos" class="loading-text">Cargando...</div>
+            <div v-else-if="!dispositivos.length" class="loading-text">Sin dispositivos en esta habitación</div>
+            <div v-else class="presets">
+              <button
+                v-for="dev in dispositivos" :key="dev.id"
+                class="preset-btn preset-btn--sm" :class="{ selected: dispositivoSeleccionado?.id === dev.id }"
+                @click="seleccionarDispositivo(dev)"
+              >
+                {{ dev.name }}
+              </button>
+            </div>
+          </div>
+
+          <div v-if="dispositivoSeleccionado" class="field" style="margin-bottom: 12px">
+            <label class="field-label" style="font-size: 0.75rem">Acción</label>
+            <div v-if="cargandoAcciones" class="loading-text">Cargando...</div>
+            <div v-else class="presets">
+              <button
+                v-for="accion in accionesDisponibles" :key="accion.name"
+                class="preset-btn preset-btn--sm"
+                :class="{ selected: accionSeleccionada?.name === accion.name }"
+                @click="accionSeleccionada = accion; accionParamValues = {}"
+              >
+                {{ labelAccion(accion.name) }}
+              </button>
+            </div>
+          </div>
+
+          <div v-if="accionSeleccionada && accionSeleccionada.params.length > 0" class="field" style="margin-bottom: 12px">
+            <label class="field-label" style="font-size: 0.75rem">Parámetros</label>
+            <div v-for="param in accionSeleccionada.params" :key="param.name" class="param-row">
+              <label class="param-label">{{ labelAccion(param.name) }}</label>
+              <input v-if="param.type === 'integer'" type="number" class="field-input param-input" v-model="accionParamValues[param.name]" :placeholder="param.name" />
+              <input v-else-if="param.name.toLowerCase().includes('color')" type="color" class="param-input-color" v-model="accionParamValues[param.name]" />
+              <input v-else type="text" class="field-input param-input" v-model="accionParamValues[param.name]" :placeholder="param.name" />
+            </div>
+          </div>
+
+          <button v-if="dispositivoSeleccionado && accionSeleccionada" class="btn-agregar" @click="agregarAccion">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+            Agregar acción
+          </button>
+        </div>
+      </div>
     </template>
 
     <p v-if="errorMsg" class="auth-error">{{ errorMsg }}</p>
@@ -112,9 +194,9 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
           Atrás
         </button>
-        <button class="btn-primary" @click="crearRutina" :disabled="creando">
+        <button class="btn-primary" @click="crearRutina" :disabled="creando || !accionesAgregadas.length">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-          {{ creando ? 'Creando…' : 'Crear rutina' }}
+          {{ creando ? (rutinaEditar ? 'Guardando…' : 'Creando…') : (rutinaEditar ? 'Guardar cambios' : 'Crear rutina') }}
         </button>
       </template>
     </div>
@@ -123,13 +205,26 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import DeviceModal from './DeviceModal.vue'
-import { createRoutine } from '@/services/routineService'
+import { createRoutine, updateRoutine } from '@/services/routineService'
+import { getRooms, getRoomDevices } from '@/services/homeService'
+import { getDeviceTypeName, getDeviceTypeById, getDevice } from '@/services/deviceService'
 import { ICONS, ROUTINE_ICONS } from '@/utils/routineIcons'
 
-const props = defineProps<{ hogares: { id: string; name: string }[] }>()
-const emit = defineEmits(['close', 'created'])
+interface AccionRutina {
+  device: { id: string }
+  actionName: string
+  params: any[]
+  nombreDispositivo: string
+  tipoDispositivo: string
+}
+
+const props = defineProps<{
+  hogares: { id: string; name: string }[]
+  rutinaEditar?: any
+}>()
+const emit = defineEmits(['close', 'created', 'updated'])
 
 const paso = ref(1)
 const nombre = ref('')
@@ -141,6 +236,25 @@ const diasSeleccionados = ref<string[]>(['lun', 'mar', 'mie', 'jue', 'vie'])
 const errorMsg = ref('')
 const creando = ref(false)
 
+function labelAccion(name: string): string {
+  return name.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase()).trim()
+}
+
+const habitaciones = ref<any[]>([])
+const dispositivos = ref<any[]>([])
+const habitacionSeleccionada = ref('')
+const dispositivoSeleccionado = ref<any>(null)
+interface ActionDef { name: string; params: { name: string; type: string }[] }
+
+const accionSeleccionada = ref<ActionDef | null>(null)
+const accionParamValues = ref<Record<string, any>>({})
+const accionesAgregadas = ref<AccionRutina[]>([])
+const accionesDisponibles = ref<ActionDef[]>([])
+const cargandoHabitaciones = ref(false)
+const cargandoDispositivos = ref(false)
+const cargandoAcciones = ref(false)
+const cargandoAccionesEdit = ref(false)
+
 const dias = [
   { key: 'lun', label: 'Lun' },
   { key: 'mar', label: 'Mar' },
@@ -151,13 +265,47 @@ const dias = [
   { key: 'dom', label: 'Dom' },
 ]
 
+onMounted(async () => {
+  const r = props.rutinaEditar
+  if (!r) return
+  nombre.value = r.nombre
+  iconSeleccionado.value = r.icon ?? 'clock'
+  tipoTrigger.value = r.tipoTrigger ?? 'scheduled'
+  hora.value = r.hora ?? '08:00'
+  diasSeleccionados.value = r.dias ?? ['lun', 'mar', 'mie', 'jue', 'vie']
+  if (r.hogarId) hogarSeleccionado.value = r.hogarId
+
+  if (!r.actions?.length) return
+  cargandoAccionesEdit.value = true
+  try {
+    const acciones = await Promise.all(
+      r.actions.map(async (a: any) => {
+        const device = await getDevice(a.device.id)
+        const tipoDispositivo = await getDeviceTypeName(device.type.id).catch(() => 'lamp')
+        return {
+          device: { id: device.id },
+          actionName: a.actionName,
+          params: a.params ?? [],
+          nombreDispositivo: device.name,
+          tipoDispositivo,
+        }
+      })
+    )
+    accionesAgregadas.value = acciones
+  } catch (e) {
+    console.error('Error cargando acciones de la rutina:', e)
+  } finally {
+    cargandoAccionesEdit.value = false
+  }
+})
+
 function toggleDia(key: string) {
   const idx = diasSeleccionados.value.indexOf(key)
   if (idx >= 0) diasSeleccionados.value.splice(idx, 1)
   else diasSeleccionados.value.push(key)
 }
 
-function siguiente() {
+async function siguiente() {
   if (nombre.value.trim().length < 3) {
     errorMsg.value = 'El nombre debe tener al menos 3 caracteres.'
     return
@@ -168,12 +316,73 @@ function siguiente() {
   }
   errorMsg.value = ''
   paso.value = 2
+  cargandoHabitaciones.value = true
+  try {
+    habitaciones.value = await getRooms(hogarSeleccionado.value)
+  } catch {
+    habitaciones.value = []
+  } finally {
+    cargandoHabitaciones.value = false
+  }
 }
 
-/* Genera un texto descriptivo del horario */
+async function seleccionarHabitacion(id: string) {
+  habitacionSeleccionada.value = id
+  dispositivoSeleccionado.value = null
+  accionSeleccionada.value = null
+  accionesDisponibles.value = []
+  dispositivos.value = []
+  cargandoDispositivos.value = true
+  try {
+    dispositivos.value = await getRoomDevices(id)
+  } catch {
+    dispositivos.value = []
+  } finally {
+    cargandoDispositivos.value = false
+  }
+}
+
+async function seleccionarDispositivo(dev: any) {
+  dispositivoSeleccionado.value = dev
+  accionSeleccionada.value = null
+  accionParamValues.value = {}
+  accionesDisponibles.value = []
+  cargandoAcciones.value = true
+  try {
+    const tipo = await getDeviceTypeById(dev.type.id)
+    accionesDisponibles.value = (tipo.actions ?? []).map((a: any) => ({ name: a.name, params: a.params ?? [] }))
+  } catch {
+    accionesDisponibles.value = [{ name: 'turnOn', params: [] }, { name: 'turnOff', params: [] }]
+  } finally {
+    cargandoAcciones.value = false
+  }
+}
+
+async function agregarAccion() {
+  if (!dispositivoSeleccionado.value || !accionSeleccionada.value) return
+  const tipoDispositivo = await getDeviceTypeName(dispositivoSeleccionado.value.type.id).catch(() => 'lamp')
+  const params = (accionSeleccionada.value.params ?? []).map((p: { name: string; type: string }) => {
+    const val = accionParamValues.value[p.name]
+    return p.type === 'integer' ? parseInt(val) : val
+  })
+  accionesAgregadas.value.push({
+    device: { id: dispositivoSeleccionado.value.id },
+    actionName: accionSeleccionada.value.name,
+    params,
+    nombreDispositivo: dispositivoSeleccionado.value.name,
+    tipoDispositivo,
+  })
+  dispositivoSeleccionado.value = null
+  accionSeleccionada.value = null
+  accionParamValues.value = {}
+}
+
+function quitarAccion(i: number) {
+  accionesAgregadas.value.splice(i, 1)
+}
+
 function buildTriggerText() {
   if (tipoTrigger.value === 'manual') return 'Ejecución manual'
-  const todosLosDias = ['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom']
   const labelsMap: Record<string, string> = { lun: 'Lun', mar: 'Mar', mie: 'Mié', jue: 'Jue', vie: 'Vie', sab: 'Sáb', dom: 'Dom' }
   if (diasSeleccionados.value.length === 7) return `${hora.value} · Todos los días`
   if (JSON.stringify(diasSeleccionados.value.slice().sort()) === JSON.stringify(['lun','mar','mie','jue','vie']))
@@ -182,21 +391,33 @@ function buildTriggerText() {
 }
 
 async function crearRutina() {
+  if (!accionesAgregadas.value.length) {
+    errorMsg.value = 'Agregá al menos una acción.'
+    return
+  }
   creando.value = true
   try {
-    const nueva = await createRoutine(nombre.value.trim(), [], {
+    const actions = accionesAgregadas.value.map(({ device, actionName, params }) => ({ device, actionName, params }))
+    const metadata = {
       icon: iconSeleccionado.value,
       triggerIcon: tipoTrigger.value === 'manual' ? 'mouse-pointer-2' : 'clock',
       triggerText: buildTriggerText(),
       tipoTrigger: tipoTrigger.value,
       ...(tipoTrigger.value === 'scheduled' && { hora: hora.value, dias: diasSeleccionados.value }),
-      activa: true,
-      acciones: [],
-    })
-    emit('created', nueva)
+      activa: props.rutinaEditar?.activa ?? true,
+      hogarId: hogarSeleccionado.value,
+      acciones: [...new Set(accionesAgregadas.value.map(a => a.tipoDispositivo))],
+    }
+    if (props.rutinaEditar) {
+      const actualizada = await updateRoutine(props.rutinaEditar.id, nombre.value.trim(), actions, metadata)
+      emit('updated', actualizada)
+    } else {
+      const nueva = await createRoutine(nombre.value.trim(), actions, metadata)
+      emit('created', nueva)
+    }
     emit('close')
   } catch (e: any) {
-    errorMsg.value = e.response?.data?.error?.description ?? 'Error al crear la rutina'
+    errorMsg.value = e.response?.data?.error?.description ?? (props.rutinaEditar ? 'Error al guardar la rutina' : 'Error al crear la rutina')
   } finally {
     creando.value = false
   }
@@ -239,6 +460,7 @@ async function crearRutina() {
   font-size: 1rem; font-family: inherit; color: var(--text); outline: none;
 }
 .field-input:focus { border-color: var(--accent); }
+.field-input[type="time"] { color-scheme: light; color: var(--text); }
 
 .icon-picker { display: flex; flex-wrap: wrap; gap: 8px; }
 .icon-opt {
@@ -260,6 +482,41 @@ async function crearRutina() {
 }
 .preset-btn:hover { border-color: var(--accent); color: var(--accent); }
 .preset-btn.selected { background: var(--accent-light); border-color: var(--accent); color: var(--accent); }
+.preset-btn--sm { padding: 6px 12px; font-size: 0.85rem; }
+
+.nueva-accion {
+  padding: 14px; border-radius: 12px;
+  border: 1.5px dashed var(--border); background: var(--surface2);
+}
+
+.loading-text { font-size: 0.85rem; color: var(--text-muted); }
+
+.acciones-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.accion-chip {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; border-radius: 10px;
+  background: var(--accent-light); border: 1.5px solid var(--accent);
+  color: var(--accent); font-size: 0.9rem; font-weight: 600;
+}
+.accion-chip-action { margin-left: auto; font-size: 0.8rem; opacity: 0.8; }
+.accion-chip-remove {
+  background: none; border: none; cursor: pointer;
+  color: var(--accent); display: flex; align-items: center; padding: 0;
+}
+
+.btn-agregar {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 20px;
+  border: 1.5px solid var(--accent); background: transparent;
+  color: var(--accent); font-size: 0.9rem; font-weight: 600;
+  font-family: inherit; cursor: pointer; transition: all 0.15s;
+}
+.btn-agregar:hover { background: var(--accent-light); }
+
+.param-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.param-label { font-size: 0.82rem; font-weight: 600; color: var(--text-muted); min-width: 80px; }
+.param-input { flex: 1; }
+.param-input-color { width: 48px; height: 36px; border-radius: 8px; border: 1.5px solid var(--border); cursor: pointer; padding: 2px; background: var(--surface); }
 
 .auth-error { color: var(--danger); font-size: 0.9rem; margin-top: -8px; }
 

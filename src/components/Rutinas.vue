@@ -1,9 +1,9 @@
 <template>
-  <main class="main">
+  <div class="main">
     <div class="screen active page-content">
       <div class="sch-page-header">
         <div>
-          <h2 class="header-title">Rutinas</h2>
+          <div class="header-title">Rutinas</div>
           <p style="color: var(--text-muted); font-size: 1.06rem; font-weight: 600; margin: 0">
             Automatizaciones programadas para tus dispositivos
           </p>
@@ -60,7 +60,7 @@
           <span class="rut-home-card-copy">
             <span class="rut-home-card-name">{{ hogar.name }}</span>
             <span class="rut-home-card-count"
-              >{{ rutinas.length }} rutinas</span>
+              >{{ rutinas.filter(r => r.hogarId === hogar.id).length }} rutinas</span>
           </span>
         </button>
       </div>
@@ -131,7 +131,7 @@
         </button>
       </div>
       <!---->
-      <div v-if="rutinas.length > 0" style="margin-bottom: 24px">
+      <div v-if="rutinasFiltradas.length > 0" style="margin-bottom: 24px">
         <div class="rut-group-label">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -154,7 +154,7 @@
         </div>
         <div class="sch-grid">
           <div
-            v-for="rutina in rutinas"
+            v-for="rutina in rutinasFiltradas"
             :key="rutina.id"
             class="sch-card"
             :class="{ 'sch-card--disabled': rutina.deshabilitada }"
@@ -186,7 +186,7 @@
                 :key="j"
                 class="sch-act-chip"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="ICONS[accion]"></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="deviceIcons[accion]"></svg>
               </div>
             </div>
             <div class="sch-card-footer">
@@ -204,7 +204,7 @@
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="ICONS['play']"></svg>
                 </button>
-                <button class="sch-btn sch-btn--edit" title="Editar">
+                <button class="sch-btn sch-btn--edit" title="Editar" @click.stop="rutinaAEditar = rutina">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="ICONS['sliders-horizontal']"></svg>
                 </button>
                 <button class="sch-btn sch-btn--delete" title="Eliminar" @click.stop="rutinaAEliminar = rutina">
@@ -216,13 +216,15 @@
         </div>
       </div>
     </div>
-  </main>
+  </div>
 
   <NuevaRutinaModal
-    v-if="mostrarNuevaRutina"
+    v-if="mostrarNuevaRutina || rutinaAEditar"
     :hogares="hogares"
-    @close="mostrarNuevaRutina = false"
+    :rutinaEditar="rutinaAEditar ?? undefined"
+    @close="mostrarNuevaRutina = false; rutinaAEditar = null"
     @created="onRutinaCreada"
+    @updated="onRutinaActualizada"
   />
 
   <ConfirmarEliminarModal
@@ -245,6 +247,7 @@ import { manipulateDevice } from "@/services/deviceService";
 import NuevaRutinaModal from "@/components/NuevaRutinaModal.vue";
 import ConfirmarEliminarModal from "@/components/ConfirmarEliminarModal.vue";
 import { ICONS } from "@/utils/routineIcons";
+import { deviceIcons } from "@/utils/deviceIcons";
 
 
 interface Rutina {
@@ -260,6 +263,8 @@ interface Rutina {
   deshabilitada: boolean;
   acciones: string[];
   ultimaEjecucion: string;
+  actions: any[];
+  hogarId: string;
 }
 
 /* adaptador entre el idioma de la API y el idioma del template. */
@@ -279,6 +284,8 @@ function mapRutina(r: any): Rutina {
     deshabilitada: !activa,
     acciones: m.acciones ?? [],
     ultimaEjecucion: m.ultimaEjecucion ?? 'Nunca',
+    actions: r.actions ?? [],
+    hogarId: m.hogarId ?? '',
   };
 }
 
@@ -291,6 +298,7 @@ const hogares = ref<Home[]>([]);
 const generalActiva = ref(true);
 const mostrarNuevaRutina = ref(false);
 const rutinaAEliminar = ref<Rutina | null>(null);
+const rutinaAEditar = ref<Rutina | null>(null);
 const errorEliminar = ref('');
 const selectedHomeId = ref<string | null>(null);
 const selectedHome = computed(() =>
@@ -298,6 +306,9 @@ const selectedHome = computed(() =>
 );
 
 const rutinas = ref<Rutina[]>([]);
+const rutinasFiltradas = computed(() =>
+  rutinas.value.filter(r => r.hogarId === selectedHomeId.value)
+);
 
 onMounted(async () => {
   try {
@@ -312,6 +323,12 @@ onMounted(async () => {
 
 function onRutinaCreada(nueva: any) {
   rutinas.value.push(mapRutina(nueva));
+}
+
+function onRutinaActualizada(actualizada: any) {
+  const idx = rutinas.value.findIndex(r => r.id === actualizada.id);
+  if (idx !== -1) rutinas.value[idx] = mapRutina(actualizada);
+  rutinaAEditar.value = null;
 }
 
 async function eliminarRutina() {
@@ -332,7 +349,7 @@ async function toggleRutina(rutina: Rutina) {
   rutina.activa = nuevoEstado;
   rutina.deshabilitada = !nuevoEstado;
   try {
-    await updateRoutine(rutina.id, rutina.nombre, [], {
+    await updateRoutine(rutina.id, rutina.nombre, rutina.actions, {
       icon: rutina.icon,
       triggerIcon: rutina.triggerIcon,
       triggerText: rutina.triggerText,
@@ -351,6 +368,7 @@ async function toggleRutina(rutina: Rutina) {
 async function ejecutarRutina(rutina: Rutina) {
   try {
     await executeRoutine(rutina.id);
+    rutina.ultimaEjecucion = new Date().toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' });
   } catch (e: any) {
     console.error('Error al ejecutar rutina:', e.response?.data?.error?.description ?? e.message);
   }
@@ -374,13 +392,6 @@ async function toggleTodasLasLuces() {
 </script>
 
 <style scoped>
-.section-title {
-  font-size: 1.65rem;
-  font-weight: 800;
-  color: var(--text);
-  margin-top: 0;
-  margin-bottom: 2px;
-}
 
 .sch-page-header {
   display: flex;
@@ -436,7 +447,7 @@ async function toggleTodasLasLuces() {
   gap: 14px;
   padding: 14px 18px;
   border-radius: 18px;
-  border: 2px solid var(--bg);
+  border: 2px solid #d8dbef;
   background: var(--surface);
   color: var(--text);
   cursor: pointer;
@@ -476,7 +487,7 @@ async function toggleTodasLasLuces() {
 .rut-home-card-icon svg {
   width: 26px;
   height: 26px;
-  color: var(--text);
+  color: black;
 }
 
 .rut-home-card-copy {
@@ -486,7 +497,7 @@ async function toggleTodasLasLuces() {
 }
 
 .rut-home-card-name {
-  font-size: 1.1875rem;
+  font-size: 1.2rem;
   font-weight: 800;
   line-height: 1.1;
 }
@@ -509,7 +520,7 @@ async function toggleTodasLasLuces() {
   padding: 14px 18px;
   margin-bottom: 24px;
   border-radius: 18px;
-  border: 2px solid var(--bg);
+  border: 2px solid #d8dbef;
   background: var(--surface);
 }
 
@@ -655,13 +666,13 @@ async function toggleTodasLasLuces() {
 
 .sch-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 18px;
 }
 
 .sch-card {
   background: var(--surface);
-  border: 2px solid var(--border);
+  border: 2px solid #d8dbef;
   border-radius: 20px;
   padding: 18px 18px 14px;
   display: flex;
@@ -697,7 +708,7 @@ async function toggleTodasLasLuces() {
   height: 48px;
   border-radius: 14px;
   background: var(--surface2);
-  border: 2px solid var(--border);
+  border: 2px solid #b8bddc;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -708,19 +719,17 @@ async function toggleTodasLasLuces() {
 }
 
 .sch-card-icon.sch-icon--active {
-  background: var(--surface2);
-  border-color: var(--border);
+  background: #f5f6fb;;
+  border-color: #b8bddc;
 }
 
 .sch-card-icon svg {
   width: 22px;
   height: 22px;
-  color: var(--text);
+  color: black;
 }
 
-.sch-card--disabled .sch-card-icon svg {
-  color: var(--text-muted);
-}
+.sch-card--disabled .sch-card-icon svg {  color: var(--text-muted); }
 
 .sch-card-meta {
   flex: 1;
