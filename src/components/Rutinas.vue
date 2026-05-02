@@ -186,7 +186,7 @@
                 :key="j"
                 class="sch-act-chip"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="ICONS[accion]"></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="deviceIcons[accion]"></svg>
               </div>
             </div>
             <div class="sch-card-footer">
@@ -245,6 +245,7 @@ import { manipulateDevice } from "@/services/deviceService";
 import NuevaRutinaModal from "@/components/NuevaRutinaModal.vue";
 import ConfirmarEliminarModal from "@/components/ConfirmarEliminarModal.vue";
 import { ICONS } from "@/utils/routineIcons";
+import { deviceIcons } from "@/utils/deviceIcons";
 
 
 interface Rutina {
@@ -353,6 +354,7 @@ async function toggleRutina(rutina: Rutina) {
 async function ejecutarRutina(rutina: Rutina) {
   try {
     await executeRoutine(rutina.id);
+    rutina.ultimaEjecucion = new Date().toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' });
   } catch (e: any) {
     console.error('Error al ejecutar rutina:', e.response?.data?.error?.description ?? e.message);
   }
@@ -650,7 +652,7 @@ async function toggleTodasLasLuces() {
 
 .sch-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 18px;
 }
 

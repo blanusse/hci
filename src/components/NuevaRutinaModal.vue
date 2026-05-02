@@ -2,7 +2,7 @@
   <DeviceModal @close="$emit('close')">
 
     <template #header>
-      <span class="modal-title">{{ 'Nueva rutina' }}</span>
+      <span class="modal-title">Nueva rutina</span>
     </template>
 
     <div class="steps">
@@ -192,6 +192,7 @@ import { ref } from 'vue'
 import DeviceModal from './DeviceModal.vue'
 import { createRoutine } from '@/services/routineService'
 import { getRooms, getRoomDevices } from '@/services/homeService'
+import { getDeviceTypeName } from '@/services/deviceService'
 import { ICONS, ROUTINE_ICONS } from '@/utils/routineIcons'
 
 interface AccionRutina {
@@ -199,6 +200,7 @@ interface AccionRutina {
   actionName: string
   params: any[]
   nombreDispositivo: string
+  tipoDispositivo: string
 }
 
 const props = defineProps<{ hogares: { id: string; name: string }[] }>()
@@ -275,13 +277,15 @@ async function seleccionarHabitacion(id: string) {
   }
 }
 
-function agregarAccion() {
+async function agregarAccion() {
   if (!dispositivoSeleccionado.value || !accionSeleccionada.value) return
+  const tipoDispositivo = await getDeviceTypeName(dispositivoSeleccionado.value.type.id).catch(() => 'lamp')
   accionesAgregadas.value.push({
     device: { id: dispositivoSeleccionado.value.id },
     actionName: accionSeleccionada.value,
     params: [],
     nombreDispositivo: dispositivoSeleccionado.value.name,
+    tipoDispositivo,
   })
   dispositivoSeleccionado.value = null
   accionSeleccionada.value = ''
@@ -315,7 +319,7 @@ async function crearRutina() {
       tipoTrigger: tipoTrigger.value,
       ...(tipoTrigger.value === 'scheduled' && { hora: hora.value, dias: diasSeleccionados.value }),
       activa: true,
-      acciones: [],
+      acciones: [...new Set(accionesAgregadas.value.map(a => a.tipoDispositivo))],
     })
     emit('created', nueva)
     emit('close')
