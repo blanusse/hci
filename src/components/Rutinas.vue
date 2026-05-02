@@ -487,7 +487,7 @@ async function toggleTodasLasLuces() {
 .rut-home-card-icon svg {
   width: 26px;
   height: 26px;
-  color: var(--text);
+  color: black;
 }
 
 .rut-home-card-copy {
@@ -726,7 +726,7 @@ async function toggleTodasLasLuces() {
 .sch-card-icon svg {
   width: 22px;
   height: 22px;
-  color: var(--text);
+  color: black;
 }
 
 .sch-card--disabled .sch-card-icon svg {  color: var(--text-muted); }
