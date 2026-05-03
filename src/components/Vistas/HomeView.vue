@@ -179,22 +179,11 @@ const deviceArrastrado = ref<any>(null)
 
 
 onMounted(async () => {
-   const socket = socketStore.socket
-   if(!socket) return
-   socket.on('deviceUpdated', () => cargarRooms())
-   socket.on('deviceCreated', () => cargarRooms())
-   socket.on('deviceDeleted', () => cargarRooms())
    const home = await(getHome(homeId))
    homeName.value = home.name
    await cargarRooms()
 })
 
-onUnmounted(() => {
-    const socket = socketStore.socket
-    socket?.off('deviceUpdated')
-    socket?.off('deviceCreated')
-    socket?.off('deviceDeleted')
-  })
 
 
 function onDragStart(device: any){

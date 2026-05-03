@@ -14,40 +14,43 @@ export interface Notificacion {
 export const useNotificacionesStore = defineStore('notificaciones', () => {
    const notificaciones = ref<Notificacion[]>([])
    const sinLeer = computed(() => notificaciones.value.filter(n => !n.leida).length)
+   let iniciado = false
 
    function iniciar() {
+      if (iniciado) return
+      iniciado = true
+      console.log('[Notificaciones] iniciando listeners SSE')
       const socketStore = useSocketStore()
-      const socket = socketStore.socket
 
-      if (!socket) return
-
-      socket.on('deviceEvent', async (e: any) => {
-         const device = await getDevice(e.data.deviceId).catch(() => null)
+      socketStore.on('statusChanged', async (e: any) => {
+         const device = await getDevice(e.deviceId).catch(() => null)
          notificaciones.value.unshift({
-            id: e.id,
+            id: e.id ?? Date.now().toString(),
             titulo: device?.name ?? 'Dispositivo',
-            descripcion: formatEvento(e.data.event, e.data.args),
-            tiempo: tiempoRelativo(e.data.timestamp),
+            descripcion: formatEvento(e.event, e.args),
+            tiempo: tiempoRelativo(e.timestamp),
             leida: false
          })
       })
 
-      socket.on('homeShared', (e: any) => {
+      socketStore.on('brightnessChanged', async (e: any) => {
+         const device = await getDevice(e.deviceId).catch(() => null)
          notificaciones.value.unshift({
-            id: e.homeId,
-            titulo: 'Casa compartida',
-            descripcion: 'Alguien compartió una casa contigo',
-            tiempo: 'Ahora',
+            id: e.id ?? Date.now().toString(),
+            titulo: device?.name ?? 'Dispositivo',
+            descripcion: formatEvento(e.event, e.args),
+            tiempo: tiempoRelativo(e.timestamp),
             leida: false
          })
       })
 
-      socket.on('homeUnshared', (e: any) => {
+      socketStore.on('temperatureChanged', async (e: any) => {
+         const device = await getDevice(e.deviceId).catch(() => null)
          notificaciones.value.unshift({
-            id: e.homeId,
-            titulo: 'Acceso removido',
-            descripcion: 'Te quitaron acceso a una casa',
-            tiempo: 'Ahora',
+            id: e.id ?? Date.now().toString(),
+            titulo: device?.name ?? 'Dispositivo',
+            descripcion: formatEvento(e.event, e.args),
+            tiempo: tiempoRelativo(e.timestamp),
             leida: false
          })
       })

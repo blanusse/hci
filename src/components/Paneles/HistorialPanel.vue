@@ -62,7 +62,10 @@
                         <div class="hist-device">{{ r.deviceName }}</div>
                         <div class="hist-accion">{{ r.descripcion }}</div>
                         <div class="hist-meta">
-                           <span class="hist-home">{{ r.homeName }}</span>
+                           <span class="hist-home">{{ r.homeName || 'Sin casa' }}</span>
+                           <span class="hist-result" :class="r.result ? 'ok' : 'err'">
+                              {{ r.result ? 'OK' : 'Error' }}
+                           </span>
                            <span class="hist-time">{{ r.hora }}</span>
                         </div>
                      </div>
@@ -78,12 +81,12 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { getHomes } from '@/services/homeService';
+import { getDeviceLogs, getDevice } from '@/services/deviceService'
+import { getHomes, getRooms, getRoomDevices } from '@/services/homeService'
 
 defineEmits(['close'])
 
-// TODO: reemplazar con llamadas reales a la API
-const cargando = ref(false)
+const cargando = ref(true)
 const homes = ref<{ id: string; name: string }[]>([])
 const registros = ref<Registro[]>([])
 
@@ -100,6 +103,7 @@ interface Registro {
    hora: string    // 'HH:MM'
    iconSvg: string
    colorClass: string
+   result: boolean
 }
 
 const registrosFiltrados = computed(() => {
@@ -128,10 +132,86 @@ function fechaLabel(fecha: string): string {
    return new Date(fecha + 'T00:00:00').toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })
 }
 
+function actionInfo(actionName: string): { descripcion: string; iconSvg: string; colorClass: string } {
+   const map: Record<string, { descripcion: string; iconSvg: string; colorClass: string }> = {
+      turnOn:          { descripcion: 'Encendido',          iconSvg: '<path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/>',                                          colorClass: 'color-green'  },
+      turnOff:         { descripcion: 'Apagado',            iconSvg: '<path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/>',                                          colorClass: 'color-gray'   },
+      setBrightness:   { descripcion: 'Brillo cambiado',    iconSvg: '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>',  colorClass: 'color-yellow' },
+      setTemperature:  { descripcion: 'Temperatura',        iconSvg: '<path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/>',                                                    colorClass: 'color-blue'   },
+      setColor:        { descripcion: 'Color cambiado',     iconSvg: '<circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>',  colorClass: 'color-yellow' },
+      setMode:         { descripcion: 'Modo cambiado',      iconSvg: '<circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>',                colorClass: 'color-blue'   },
+      setSpeed:        { descripcion: 'Velocidad cambiada', iconSvg: '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>',                                     colorClass: 'color-blue'   },
+      setLocked:       { descripcion: 'Cerrojo cambiado',   iconSvg: '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',                           colorClass: 'color-red'    },
+      open:            { descripcion: 'Abierto',            iconSvg: '<polyline points="5 9 2 12 5 15"/><path d="M20 4v7a4 4 0 0 1-4 4H2"/>',                                                    colorClass: 'color-green'  },
+      close:           { descripcion: 'Cerrado',            iconSvg: '<polyline points="19 9 22 12 19 15"/><path d="M2 4v7a4 4 0 0 0 4 4h14"/>',                                                 colorClass: 'color-gray'   },
+   }
+   return map[actionName] ?? {
+      descripcion: actionName,
+      iconSvg: '<circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>',
+      colorClass: 'color-blue'
+   }
+}
+
 onMounted(async () => {
-   // TODO: cargar homes y registros desde la API
-   homes.value = await getHomes()
-   // registros.value = await cargarHistorial()
+   try {
+      // 1. Load homes list for filter dropdown
+      const homesData = await getHomes()
+      homes.value = homesData
+
+      // 2. Build deviceId → { homeId, homeName } map
+      const deviceHomeMap: Record<string, { homeId: string; homeName: string }> = {}
+      await Promise.all(homesData.map(async (home: any) => {
+         try {
+            const rooms = await getRooms(home.id)
+            await Promise.all(rooms.map(async (room: any) => {
+               try {
+                  const devices = await getRoomDevices(room.id)
+                  for (const d of devices) {
+                     deviceHomeMap[d.id] = { homeId: home.id, homeName: home.name }
+                  }
+               } catch {}
+            }))
+         } catch {}
+      }))
+
+      // 3. Load logs
+      const logs = await getDeviceLogs(100, 0)
+
+      // 4. Fetch device names (with cache)
+      const deviceNameCache: Record<string, string> = {}
+      const deviceIds = [...new Set(logs.map((l: any) => l.deviceId))]
+      await Promise.all(deviceIds.map(async (id: any) => {
+         try {
+            const d = await getDevice(id)
+            deviceNameCache[id] = d?.name ?? id
+         } catch {
+            deviceNameCache[id] = id
+         }
+      }))
+
+      // 5. Map logs to Registro
+      registros.value = logs.map((log: any) => {
+         const ts = new Date(log.timestamp)
+         const fecha = ts.toISOString().slice(0, 10)
+         const hora = ts.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
+         const homeInfo = deviceHomeMap[log.deviceId] ?? { homeId: '', homeName: '' }
+         const info = actionInfo(log.actionName)
+         return {
+            id: log.id,
+            deviceName: deviceNameCache[log.deviceId] ?? log.deviceId,
+            descripcion: info.descripcion,
+            homeName: homeInfo.homeName,
+            homeId: homeInfo.homeId,
+            fecha,
+            hora,
+            iconSvg: info.iconSvg,
+            colorClass: info.colorClass,
+            result: log.result !== false && log.result !== null && log.result !== undefined
+         } satisfies Registro
+      })
+   } finally {
+      cargando.value = false
+   }
 })
 </script>
 
@@ -347,7 +427,19 @@ onMounted(async () => {
    white-space: nowrap;
    overflow: hidden;
    text-overflow: ellipsis;
+   flex: 1;
+   min-width: 0;
 }
+
+.hist-result {
+   font-size: 0.68rem;
+   font-weight: 700;
+   padding: 2px 6px;
+   border-radius: 20px;
+   flex-shrink: 0;
+}
+.hist-result.ok  { background: var(--success-light); color: var(--success); }
+.hist-result.err { background: var(--danger-light);  color: var(--color-red); }
 
 .hist-time {
    font-size: 0.72rem;

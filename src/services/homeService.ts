@@ -1,5 +1,5 @@
 import { apiDelete, apiGet, apiPost } from '@/utils/api'
-import { deleteRoom } from './deviceService'
+import { deleteRoom, getDeviceLogs } from './deviceService'
 
 //getters
 
@@ -12,7 +12,9 @@ export async function getHome(homeId: string){
 
 }
 
-
+export async function getEvents(limit = 50) {                                                                                                             
+     return await getDeviceLogs(limit, 0) 
+  }  
 export async function getRooms(homeId: string){
    return await apiGet(`/homes/${homeId}/rooms`)
 }

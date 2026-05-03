@@ -1,32 +1,63 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { io } from 'socket.io-client'
 import { useAuthStore } from './auth'
 
+type EventHandler = (data: any) => void
+
 export const useSocketStore = defineStore('socket', () => {
-   const socket = ref<ReturnType<typeof io> | null>(null)
    const conectado = ref(false)
+   let es: EventSource | null = null
+   const handlers: Record<string, EventHandler[]> = {}
 
    function conectar() {
-      if (socket.value?.connected) return
+      if (es) return
       const auth = useAuthStore()
       if (!auth.token) return
 
-      socket.value = io('http://localhost:8081', {
-         transports: ['polling', 'websocket'],
-         reconnection: false,
-         auth: { token: auth.token, apiKey: import.meta.env.VITE_API_KEY?.replace('sk_', '') }
-      })
+      const apiKey = import.meta.env.VITE_API_KEY as string
+      const url = `https://hci.it.itba.edu.ar/api/devices/events?authorization=${encodeURIComponent(auth.token)}&X-API-Key=${encodeURIComponent(apiKey)}`
+      es = new EventSource(url)
 
-      socket.value.on('connect', () => { conectado.value = true })
-      socket.value.on('disconnect', () => { conectado.value = false })
+      es.onopen = () => {
+         console.log('[SSE] conectado')
+         conectado.value = true
+      }
+
+      es.onmessage = (e) => {
+         try {
+            const parsed = JSON.parse(e.data)
+            console.log('[SSE] mensaje:', parsed)
+            const event = parsed.event as string
+            if (handlers[event]) {
+               handlers[event].forEach(h => h(parsed))
+            }
+            if (handlers['*']) {
+               handlers['*'].forEach(h => h(parsed))
+            }
+         } catch {}
+      }
+
+      es.onerror = (err) => {
+         console.error('[SSE] error:', err)
+         conectado.value = false
+      }
    }
 
    function desconectar() {
-      socket.value?.disconnect()
-      socket.value = null
+      es?.close()
+      es = null
       conectado.value = false
    }
 
-   return { socket, conectado, conectar, desconectar }
+   function on(event: string, handler: EventHandler) {
+      if (!handlers[event]) handlers[event] = []
+      handlers[event].push(handler)
+   }
+
+   function off(event: string, handler: EventHandler) {
+      if (!handlers[event]) return
+      handlers[event] = handlers[event].filter(h => h !== handler)
+   }
+
+   return { conectado, conectar, desconectar, on, off }
 })
