@@ -76,7 +76,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import DeviceModal from './DeviceModal.vue'
+import DeviceModal from '@/components/Modales/DeviceModal.vue'
 import { deviceIcons } from '@/utils/deviceIcons'
 import { getHomes, getRooms } from '@/services/homeService'
 import { getDeviceTypeId, newDeviceInRoom } from '@/services/deviceService'

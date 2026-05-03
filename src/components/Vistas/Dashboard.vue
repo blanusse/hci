@@ -89,13 +89,13 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { deviceIcons } from '@/utils/deviceIcons'
-import { getHomes, createHome, getRoomDevices, getRooms, deleteHome } from '@/services/homeService'
+import { getHomes, getRoomDevices, getRooms, deleteHome } from '@/services/homeService'
 import { getDeviceLogs, getDevice, getDeviceTypeName } from '@/services/deviceService'
 import { getUserInfo } from '@/services/userService'
 
-import NuevoHogarModal from './NuevoHogarModal.vue'
-import ConfirmarEliminarModal from './ConfirmarEliminarModal.vue'
-import DeviceModalRouter from '@/components/dispositivos/DeviceModalRouter.vue'
+import NuevoHogarModal from '@/components/Modales/NuevoHogarModal.vue'
+import ConfirmarEliminarModal from '@/components/Modales/ConfirmarEliminarModal.vue'
+import DeviceModalRouter from '@/components/Modales/DeviceModalRouter.vue'
 
 const temperatura = ref('')
 const clima = ref('')

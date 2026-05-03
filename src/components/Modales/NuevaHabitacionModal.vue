@@ -54,7 +54,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import DeviceModal from './DeviceModal.vue'
+import DeviceModal from '@/components/Modales/DeviceModal.vue'
 import { createRoomInHome } from '@/services/homeService'
 
 const props = defineProps<{ homeId: string }>()

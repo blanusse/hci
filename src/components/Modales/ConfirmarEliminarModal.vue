@@ -35,7 +35,7 @@
 </template>
 
 <script setup lang="ts">
-import DeviceModal from './DeviceModal.vue'
+import DeviceModal from '@/components/Modales/DeviceModal.vue'
 
 withDefaults(defineProps<{
    nombre: string

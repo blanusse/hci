@@ -287,7 +287,7 @@ import {
   getHourlyEnergyData,
   type Period,
 } from '@/utils/energyMock'
-import EnergyIcon from './EnergyIcon.vue'
+import EnergyIcon from '@/components/EnergyIcon.vue'
 
 
 interface Home { id: string; name: string }

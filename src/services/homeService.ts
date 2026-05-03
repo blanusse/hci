@@ -27,8 +27,8 @@ export async function getHomeMembers(homeId: string) {
 
 //creators
 
-export async function createHome(name: string, icon: string){
-   return await apiPost('/homes', {name, metadata: {icon}})
+export async function createHome(name: string, icon: string, ownerEmail: string, ownerName: string){
+   return await apiPost('/homes', {name, metadata: {icon, ownerEmail, ownerName}})
 }
 
 export async function createRoomInHome(home: Object, name: string, icon: string =''){

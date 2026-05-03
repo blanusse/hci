@@ -244,8 +244,8 @@ import { ref, computed, onMounted } from "vue";
 import { getHomes, getRooms, getRoomDevices } from "@/services/homeService";
 import { getRoutines, updateRoutine, executeRoutine, deleteRoutine } from "@/services/routineService";
 import { manipulateDevice } from "@/services/deviceService";
-import NuevaRutinaModal from "@/components/NuevaRutinaModal.vue";
-import ConfirmarEliminarModal from "@/components/ConfirmarEliminarModal.vue";
+import NuevaRutinaModal from "@/components/Modales/NuevaRutinaModal.vue";
+import ConfirmarEliminarModal from "@/components/Modales/ConfirmarEliminarModal.vue";
 import { ICONS } from "@/utils/routineIcons";
 import { deviceIcons } from "@/utils/deviceIcons";
 

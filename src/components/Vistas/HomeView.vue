@@ -153,10 +153,10 @@ import { deviceIcons } from '@/utils/deviceIcons'
 import { getDeviceTypeName, deleteDevice, moverDevice, manipulateDevice, deleteRoom } from '@/services/deviceService'
 import { useSocketStore } from '@/stores/socket'
 
-import NuevoDispositivoModal from '@/components/NuevoDispositivoModal.vue'
-import NuevoHabitacionModal from '@/components/NuevoHabitacionModal.vue'
-import DeviceModalRouter from '@/components/dispositivos/DeviceModalRouter.vue'
-import ConfirmarEliminarModal from './ConfirmarEliminarModal.vue'
+import NuevoDispositivoModal from '@/components/Modales/NuevoDispositivoModal.vue'
+import NuevoHabitacionModal from '@/components/Modales/NuevaHabitacionModal.vue'
+import DeviceModalRouter from '@/components/Modales/DeviceModalRouter.vue'
+import ConfirmarEliminarModal from '@/components/Modales/ConfirmarEliminarModal.vue'
 
 const route = useRoute()
 const socketStore = useSocketStore()

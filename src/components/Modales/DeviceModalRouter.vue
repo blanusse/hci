@@ -9,7 +9,7 @@
 </template>
 
 <script setup lang="ts">
-import LamparaModal from './LamparaModal.vue'
+import LamparaModal from '@/components/Dispositivos/LamparaModal.vue'
 
 defineProps<{ device: any }>()
 defineEmits(['close', 'update:state'])

@@ -38,7 +38,7 @@
         </svg>
         <span v-if="sinLeer > 0" class="badge">{{ sinLeer }}</span>  
       </button>
-      <button class="icon-btn">
+      <button class="icon-btn" @click="$emit('open-historial')">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
         </svg>
@@ -63,7 +63,7 @@ const { sinLeer } = storeToRefs(notifStore)
 
 const route = useRoute()
 
-defineEmits(['brand-click', 'open-notificaciones', 'open-perfil'])
+defineEmits(['brand-click', 'open-notificaciones', 'open-perfil', 'open-historial'])
 
 const saved = localStorage.getItem('theme')
 const isDark = ref(

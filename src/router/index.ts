@@ -1,12 +1,11 @@
 import {createRouter, createWebHistory} from 'vue-router'
 
-import Rutinas from '@/components/Rutinas.vue'
-import Energia from '@/components/Energia.vue'
-import Permisos from '@/components/Permisos.vue'
-import Dashboard from '@/components/Dashboard.vue'
-import Login from '@/components/Login.vue'
-import HomeView from '@/components/HomeView.vue'
-// import Navbar from '@/components/Navbar.vue'
+import Rutinas from '@/components/Vistas/Rutinas.vue'
+import Energia from '@/components/Vistas/Energia.vue'
+import Permisos from '@/components/Vistas/Permisos.vue'
+import Dashboard from '@/components/Vistas/Dashboard.vue'
+import Login from '@/components/Vistas/Login.vue'
+import HomeView from '@/components/Vistas/HomeView.vue'
 
 
 const router = createRouter({

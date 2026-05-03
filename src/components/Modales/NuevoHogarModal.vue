@@ -127,9 +127,10 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import DeviceModal from './DeviceModal.vue'
+import DeviceModal from '@/components/Modales/DeviceModal.vue'
 import { createHome, createRoomInHome } from '@/services/homeService'
 import { apiPost } from '@/utils/api'
+import { getUserInfo } from '@/services/userService'
 
 const emit = defineEmits(['close', 'created'])
 
@@ -212,7 +213,8 @@ function agregarCustom() {
 
 async function crearHogar() {
    try{
-   const home = await createHome(nombre.value.trim(), iconSeleccionado.value)
+   const user = await getUserInfo()
+   const home = await createHome(nombre.value.trim(), iconSeleccionado.value, user.email, user.name)
    for(const habitacion of habitaciones.value){
       await createRoomInHome(home, habitacion.name, habitacion.icon)
    }

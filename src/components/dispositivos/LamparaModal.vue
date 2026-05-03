@@ -66,7 +66,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import DeviceModal from '../DeviceModal.vue'
+import DeviceModal from '@/components/Modales/DeviceModal.vue'
 import { deviceIcons } from '@/utils/deviceIcons'
 import { manipulateDevice } from '@/services/deviceService';
 

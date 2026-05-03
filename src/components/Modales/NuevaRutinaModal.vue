@@ -206,7 +206,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import DeviceModal from './DeviceModal.vue'
+import DeviceModal from '@/components/Modales/DeviceModal.vue'
 import { createRoutine, updateRoutine } from '@/services/routineService'
 import { getRooms, getRoomDevices } from '@/services/homeService'
 import { getDeviceTypeName, getDeviceTypeById, getDevice } from '@/services/deviceService'

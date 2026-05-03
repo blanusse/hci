@@ -71,7 +71,7 @@
         </svg>
       </div>
       <div class="perm-member-info">
-        <div class="perm-member-name">@usuario</div>
+        <div class="perm-member-name">{{ selectedHome?.metadata.ownerName }}</div>
         <div class="perm-member-sub">Acceso completo · Propietario</div>
       </div>
       <span class="perm-role-badge perm-role-badge--owner">Propietario</span>
@@ -110,7 +110,7 @@
         </svg>
       </div>
       <div class="perm-member-info">
-        <div class="perm-member-name">{{ m.name }}</div>
+        <div class="perm-member-name">{{ m.name === currentUser?.name ? 'Tú' : m.name }}</div>
         <div class="perm-member-sub">{{ m.email }}</div>
       </div>
       <button class="perm-action-btn perm-action-btn--danger" @click="quitarMiembro(m.email)">
@@ -169,9 +169,10 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import { getHomes, shareHome, getHomeMembers, removeHomeMember } from '@/services/homeService'
+import { getUserInfo } from '@/services/userService';
 
 
-interface Home { id: string; name: string }
+interface Home { id: string; name: string, metadata: { ownerName?: string; [key: string]: any } }
 
 const homes = ref<Home[]>([])
 const selectedHome = ref<Home | null>(null)
@@ -183,6 +184,7 @@ const inviteError = ref('')
 const inviteSuccess = ref(false)
 
 const members = ref<any[]>([])
+const currentUser = ref<any>(null)
 
 watch(selectedHome, async(home) =>{
   if(!home) return
@@ -190,6 +192,7 @@ watch(selectedHome, async(home) =>{
 })
 
 onMounted(async () => {
+  currentUser.value = await getUserInfo()
   try {
     const data = await getHomes()
     homes.value = data.result ?? data
