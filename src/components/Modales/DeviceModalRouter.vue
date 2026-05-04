@@ -10,11 +10,13 @@
 
 <script setup lang="ts">
 import LamparaModal from '@/components/Dispositivos/LamparaModal.vue'
+import AlarmaModal from '@/components/Dispositivos/AlarmaModal.vue'
 
 defineProps<{ device: any }>()
 defineEmits(['close', 'update:state'])
 
 const modalesPorTipo: Record<string, any> = {
    lamp: LamparaModal,
+   alarm: AlarmaModal,
 }
 </script>
