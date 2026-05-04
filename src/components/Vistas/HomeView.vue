@@ -77,12 +77,11 @@
                   <div class="hd-device-info">
                      <span class="hd-device-name">{{ device.name }}</span>
                   </div>
-                  <button
-                     class="device-toggle" :class="{ on: device.state?.status === 'on' }"
-                     @click.stop="toggleDevice(device)"
-                  >
-                     <span class="toggle-knob"></span>
-                  </button>
+                  <component
+                     :is="cardActions[device.type?.name] ?? cardActions['lamp']"
+                     :device="device"
+                     @update:state="device.state.status = $event"
+                  />
                   <button v-if="modoEdicion" class="delete-btn" @click.stop="borrarDispositivo(device)" >
                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M10 11v6"/><path d="M14 11v6"/>
@@ -141,7 +140,7 @@
      v-if="dispositivoAbierto"       
      :device="dispositivoAbierto"                             
      @close="dispositivoAbierto = null; cargarRooms()"
-     @update:state="dispositivoAbierto.state.status = $event"
+      @update:state="dispositivoAbierto.state ? dispositivoAbierto.state.status = $event : dispositivoAbierto.state = { status: $event }"
   />
 </template>
 
@@ -153,10 +152,19 @@ import { deviceIcons } from '@/utils/deviceIcons'
 import { getDeviceTypeName, deleteDevice, moverDevice, manipulateDevice, deleteRoom } from '@/services/deviceService'
 import { useSocketStore } from '@/stores/socket'
 
+import { LamparaCardActions, AireCardActions, ParlanteCardActions, GrifoCardActions } from '@/components/Dispositivos/cardActions'
+
 import NuevoDispositivoModal from '@/components/Modales/NuevoDispositivoModal.vue'
 import NuevoHabitacionModal from '@/components/Modales/NuevaHabitacionModal.vue'
 import DeviceModalRouter from '@/components/Modales/DeviceModalRouter.vue'
 import ConfirmarEliminarModal from '@/components/Modales/ConfirmarEliminarModal.vue'
+
+const cardActions: Record<string, any> = {
+   lamp:    LamparaCardActions,
+   ac:      AireCardActions,
+   speaker: ParlanteCardActions,
+   faucet:  GrifoCardActions,
+}
 
 const route = useRoute()
 const socketStore = useSocketStore()
@@ -218,7 +226,9 @@ async function cargarRooms() {
    for (const room of rawRooms) {
       room.devices = await getRoomDevices(room.id)
       for (const device of room.devices) {
-         device.type.name = await getDeviceTypeName(device.type.id)
+         if(device.type?.id){
+            device.type.name = await getDeviceTypeName(device.type.id)
+         }
       }  
    }
    rooms.value = rawRooms

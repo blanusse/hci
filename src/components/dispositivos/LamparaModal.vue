@@ -65,10 +65,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import DeviceModal from '@/components/Modales/DeviceModal.vue'
 import { deviceIcons } from '@/utils/deviceIcons'
-import { manipulateDevice } from '@/services/deviceService';
+import { manipulateDevice, getDeviceState } from '@/services/deviceService';
 
 const props = defineProps<{
    device: any
@@ -79,6 +79,17 @@ const encendido = ref(props.device.state?.status === 'on')
 const intensidad = ref(props.device.state?.brightness ?? 80)
 const colorSeleccionado = ref(props.device.state?.color ?? 'Blanca')
 const colorPersonalizado = ref('var(--surface)fff')
+
+onMounted(async () => {
+   try {
+      const s = await getDeviceState(props.device.id)
+      if (s) {
+         encendido.value        = s.status === 'on'
+         intensidad.value       = s.brightness ?? intensidad.value
+         colorSeleccionado.value = s.color ?? colorSeleccionado.value
+      }
+   } catch {}
+})
 
 const previewStyle = computed(() => {
    if (!encendido.value) return { background: 'var(--surface2)', color: 'var(--text)' }

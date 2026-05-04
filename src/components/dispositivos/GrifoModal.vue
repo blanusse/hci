@@ -56,15 +56,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import DeviceModal from '@/components/Modales/DeviceModal.vue'
 import { deviceIcons } from '@/utils/deviceIcons'
-import { manipulateDevice } from '@/services/deviceService'
+import { manipulateDevice, getDeviceState } from '@/services/deviceService'
 
 const props = defineProps<{ device: any }>()
 const emit = defineEmits(['close', 'update:state'])
 
 const abierto = ref(props.device.state?.status === 'opened')
+
+onMounted(async () => {
+   try {
+      const s = await getDeviceState(props.device.id)
+      if (s) abierto.value = s.status === 'opened'
+   } catch {}
+})
 const cantidad = ref<number>(500)
 const unidad   = ref('ml')
 

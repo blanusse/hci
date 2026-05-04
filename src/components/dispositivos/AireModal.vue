@@ -98,10 +98,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import DeviceModal from '@/components/Modales/DeviceModal.vue'
 import { deviceIcons } from '@/utils/deviceIcons'
-import { manipulateDevice } from '@/services/deviceService'
+import { manipulateDevice, getDeviceState } from '@/services/deviceService'
 
 const props = defineProps<{ device: any }>()
 const emit = defineEmits(['close', 'update:state'])
@@ -112,6 +112,20 @@ const modo           = ref<string>(props.device.state?.mode ?? 'frío')
 const velocidadVentilador = ref<string | number>(props.device.state?.fanSpeed ?? 'auto')
 const aspaVertical   = ref<string | number>(props.device.state?.verticalSwing ?? 'auto')
 const aspaHorizontal = ref<string | number>(props.device.state?.horizontalSwing ?? 'auto')
+
+onMounted(async () => {
+   try {
+      const s = await getDeviceState(props.device.id)
+      if (s) {
+         encendido.value           = s.status === 'on'
+         temperatura.value         = s.temperature       ?? temperatura.value
+         modo.value                = s.mode              ?? modo.value
+         velocidadVentilador.value = s.fanSpeed          ?? velocidadVentilador.value
+         aspaVertical.value        = s.verticalSwing     ?? aspaVertical.value
+         aspaHorizontal.value      = s.horizontalSwing   ?? aspaHorizontal.value
+      }
+   } catch {}
+})
 
 const modos = [
    {
@@ -133,27 +147,27 @@ const modos = [
 
 const velocidades = [
    { value: 'auto', label: 'Auto' },
-   { value: 25,     label: '25%'  },
-   { value: 50,     label: '50%'  },
-   { value: 75,     label: '75%'  },
-   { value: 100,    label: '100%' },
+   { value: '25',     label: '25%'  },
+   { value: '50',     label: '50%'  },
+   { value: '75',     label: '75%'  },
+   { value: '100',    label: '100%' },
 ]
 
 const aspasVerticales = [
    { value: 'auto', label: 'Auto' },
-   { value: 22,     label: '22°'  },
-   { value: 45,     label: '45°'  },
-   { value: 67,     label: '67°'  },
-   { value: 90,     label: '90°'  },
+   { value: '22',     label: '22°'  },
+   { value: '45',     label: '45°'  },
+   { value: '67',     label: '67°'  },
+   { value: '90',     label: '90°'  },
 ]
 
 const aspasHorizontales = [
    { value: 'auto', label: 'Auto' },
-   { value: -90,    label: '-90°' },
-   { value: -45,    label: '-45°' },
-   { value: 0,      label: '0°'   },
-   { value: 45,     label: '45°'  },
-   { value: 90,     label: '90°'  },
+   { value: '-90',    label: '-90°' },
+   { value: '-45',    label: '-45°' },
+   { value: '0',      label: '0°'   },
+   { value: '45',     label: '45°'  },
+   { value: '90',     label: '90°'  },
 ]
 
 const modoLabel = computed(() => {

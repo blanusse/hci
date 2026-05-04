@@ -247,7 +247,7 @@ function toggleDark() {
   top: 4px;
   right: 4px;
   background: var(--danger);
-  color: var(--text);
+  color: #fff;
   font-size: 0.6rem;
   font-weight: 700;
   width: 16px;

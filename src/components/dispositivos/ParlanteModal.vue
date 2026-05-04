@@ -91,7 +91,7 @@
 import { ref, computed, onMounted } from 'vue'
 import DeviceModal from '@/components/Modales/DeviceModal.vue'
 import { deviceIcons } from '@/utils/deviceIcons'
-import { manipulateDevice, getDevice } from '@/services/deviceService'
+import { manipulateDevice, getDeviceState } from '@/services/deviceService'
 
 const props = defineProps<{ device: any }>()
 const emit = defineEmits(['close', 'update:state'])
@@ -112,28 +112,32 @@ const estadoLabel = computed(() => {
 
 onMounted(async () => {
    try {
-      const d = await getDevice(props.device.id)
-      if (d?.state) {
-         estado.value       = d.state.status ?? estado.value
-         generoActual.value = d.state.genre  ?? generoActual.value
-         const raw = d.state.volume
+      const s = await getDeviceState(props.device.id)
+      if (s) {
+         estado.value       = s.status ?? estado.value
+         generoActual.value = s.genre  ?? generoActual.value
+         const raw = s.volume
          if (raw !== undefined) volumen.value = raw > 10 ? Math.round(raw / 10) : raw
-         actualizarSong(d.state)
+         if (s.song) {
+            cancion.value   = s.song.title  ?? ''
+            artista.value   = s.song.artist ?? ''
+            timestamp.value = s.song.progress ? formatDuracion(s.song.progress) : ''
+         }
       }
    } catch {}
 })
 
-function actualizarSong(state: any) {
-   // La API puede devolver song como objeto o como string plano
-   if (state.song && typeof state.song === 'object') {
-      cancion.value   = state.song.title   ?? state.song.name ?? ''
-      artista.value   = state.song.artist  ?? ''
-      timestamp.value = state.song.progress ?? state.song.timestamp ?? ''
-   } else {
-      cancion.value   = state.song    ?? ''
-      artista.value   = state.artist  ?? ''
-      timestamp.value = state.timestamp ?? ''
-   }
+function actualizarSong(r: any) {
+   const song = r?.song ?? r
+   cancion.value   = song?.title  ?? ''
+   artista.value   = song?.artist ?? ''
+   timestamp.value = song?.progress ? formatDuracion(song.progress) : ''
+}
+
+function formatDuracion(seg: number): string {
+   const m = Math.floor(seg / 60)
+   const s = seg % 60
+   return `${m}:${String(s).padStart(2, '0')}`
 }
 
 const generos = [
