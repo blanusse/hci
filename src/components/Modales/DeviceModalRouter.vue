@@ -11,6 +11,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import LamparaModal from '@/components/Dispositivos/LamparaModal.vue'
+import AlarmaModal from '@/components/Dispositivos/AlarmaModal.vue'
+import PuertaModal from '@/components/Dispositivos/PuertaModal.vue'
 import AireModal from '@/components/Dispositivos/AireModal.vue'
 import ParlanteModal from '@/components/Dispositivos/ParlanteModal.vue'
 import GrifoModal from '@/components/Dispositivos/GrifoModal.vue'
@@ -23,6 +25,8 @@ defineEmits(['close', 'update:state'])
 
 const modalesPorTipo: Record<string, any> = {
    lamp: LamparaModal,
+   alarm: AlarmaModal,
+   door: PuertaModal,
    ac: AireModal,
    speaker: ParlanteModal,
    faucet: GrifoModal,
