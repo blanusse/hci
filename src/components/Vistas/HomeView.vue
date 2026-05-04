@@ -78,7 +78,8 @@
                      <span class="hd-device-name">{{ device.name }}</span>
                   </div>
                   <component
-                     :is="cardActions[device.type?.name] ?? cardActions['lamp']"
+                     v-if="cardActions[device.type?.name]"
+                     :is="cardActions[device.type?.name]"
                      :device="device"
                      @update:state="device.state.status = $event"
                   />
@@ -152,7 +153,7 @@ import { deviceIcons } from '@/utils/deviceIcons'
 import { getDeviceTypeName, deleteDevice, moverDevice, manipulateDevice, deleteRoom } from '@/services/deviceService'
 import { useSocketStore } from '@/stores/socket'
 
-import { LamparaCardActions, AireCardActions, ParlanteCardActions, GrifoCardActions } from '@/components/Dispositivos/cardActions'
+import { LamparaCardActions, AireCardActions, HornoCardActions, HeladeraCardActions, ParlanteCardActions, GrifoCardActions, PersianaCardActions } from '@/components/dispositivos/cardActions'
 
 import NuevoDispositivoModal from '@/components/Modales/NuevoDispositivoModal.vue'
 import NuevoHabitacionModal from '@/components/Modales/NuevaHabitacionModal.vue'
@@ -162,8 +163,11 @@ import ConfirmarEliminarModal from '@/components/Modales/ConfirmarEliminarModal.
 const cardActions: Record<string, any> = {
    lamp:    LamparaCardActions,
    ac:      AireCardActions,
+   oven:    HornoCardActions,
+   refrigerator: HeladeraCardActions,
    speaker: ParlanteCardActions,
    faucet:  GrifoCardActions,
+   blinds:  PersianaCardActions,
 }
 
 const route = useRoute()
@@ -215,8 +219,17 @@ async function toggleDevice(device: any) {
 
 function abrirDispositivo(device: any) {                                                                                                                                
      console.log('device:', device)
-     dispositivoAbierto.value = device
+     asegurarTipoYabrir(device)
   }
+
+async function asegurarTipoYabrir(device: any) {
+   if (!device?.type?.name && device?.type?.id) {
+      try {
+         device.type.name = await getDeviceTypeName(device.type.id)
+      } catch {}
+   }
+   dispositivoAbierto.value = device
+}
 
 
 
