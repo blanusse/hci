@@ -52,14 +52,20 @@
             <span class="swatch-label">{{ s.label }}</span>
          </button>
 
-         <!-- Custom color picker -->
-         <label class="swatch swatch-custom" :class="{ selected: colorSeleccionado === 'Personalizar' }" :style="colorSeleccionado === 'Personalizar' ? { background: colorPersonalizado } : {}" title="Personalizar">
-            <input type="color" v-model="colorPersonalizado" @change="onColorPersonalizado" style="display:none" />
+         <!-- Custom color swatch -->
+         <button class="swatch swatch-custom" :class="{ selected: colorSeleccionado === 'Personalizar' }" :style="colorSeleccionado === 'Personalizar' ? { background: colorPersonalizado } : {}" @click="abrirPicker" title="Personalizar">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                <circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20"/><path d="M12 2v20M2 12h20" opacity=".3"/>
             </svg>
             <span class="swatch-label">Custom</span>
-         </label>
+         </button>
+      </div>
+
+      <!-- Color picker inline -->
+      <div v-if="mostrarPicker" class="color-picker-panel">
+         <input type="color" v-model="colorTemp" class="color-input-grande" />
+         <span class="color-hex">{{ colorTemp }}</span>
+         <button class="ctrl-btn active" @click="confirmarColor">Aceptar</button>
       </div>
    </DeviceModal>
 </template>
@@ -78,7 +84,9 @@ const emit = defineEmits(['close', 'update:state'])
 const encendido = ref(props.device.state?.status === 'on')
 const intensidad = ref(props.device.state?.brightness ?? 80)
 const colorSeleccionado = ref(props.device.state?.color ?? 'Blanca')
-const colorPersonalizado = ref('var(--surface)fff')
+const colorPersonalizado = ref('#ffffff')
+const mostrarPicker = ref(false)
+const colorTemp = ref('#ffffff')
 
 onMounted(async () => {
    try {
@@ -133,9 +141,16 @@ function seleccionarColor(s: { label: string; hex: string }) {
 
 }
 
-function onColorPersonalizado() {
+function abrirPicker() {
+   colorTemp.value = colorPersonalizado.value
    colorSeleccionado.value = 'Personalizar'
-   return manipulateDevice(props.device.id, 'setColor', [colorPersonalizado.value])
+   mostrarPicker.value = true
+}
+
+function confirmarColor() {
+   colorPersonalizado.value = colorTemp.value
+   mostrarPicker.value = false
+   manipulateDevice(props.device.id, 'setColor', [colorPersonalizado.value])
 }
 </script>
 
@@ -273,4 +288,34 @@ function onColorPersonalizado() {
 }
 .swatch-custom.selected { color: white; }
 .swatch-custom.selected .swatch-label { color: white; }
+
+.color-picker-panel {
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   gap: 12px;
+   margin-top: 16px;
+   padding: 20px;
+   border-radius: 14px;
+   background: var(--surface2);
+   border: 1.5px solid var(--border);
+}
+
+.color-input-grande {
+   width: 80px;
+   height: 80px;
+   border: none;
+   border-radius: 50%;
+   cursor: pointer;
+   padding: 0;
+   background: none;
+}
+
+.color-hex {
+   font-size: 0.85rem;
+   font-weight: 600;
+   color: var(--text-muted);
+   font-family: monospace;
+   letter-spacing: 0.05em;
+}
 </style>

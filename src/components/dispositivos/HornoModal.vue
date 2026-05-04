@@ -149,7 +149,7 @@ function onTemperaturaChange() {
 
 function seleccionarFuenteCalor(value: string) {
    heatSource.value = value
-   manipulateDevice(props.device.id, 'setHeatSource', [value])
+   manipulateDevice(props.device.id, 'setHeat', [value])
 }
 
 function seleccionarGrill(value: string) {
