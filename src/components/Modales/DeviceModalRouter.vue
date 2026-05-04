@@ -9,11 +9,12 @@
 </template>
 
 <script setup lang="ts">
-import LamparaModal from '@/components/Dispositivos/LamparaModal.vue'
-import AireModal from '@/components/Dispositivos/AireModal.vue'
-import ParlanteModal from '@/components/Dispositivos/ParlanteModal.vue'
-import GrifoModal from '@/components/Dispositivos/GrifoModal.vue'
-import HeladeraModal from '@/components/Dispositivos/HeladeraModal.vue'
+import LamparaModal from '@/components/dispositivos/LamparaModal.vue'
+import AireModal from '@/components/dispositivos/AireModal.vue'
+import ParlanteModal from '@/components/dispositivos/ParlanteModal.vue'
+import GrifoModal from '@/components/dispositivos/GrifoModal.vue'
+import HeladeraModal from '@/components/dispositivos/HeladeraModal.vue'
+import PersianaModal from '@/components/dispositivos/PersianaModal.vue'
 
 defineProps<{ device: any }>()
 defineEmits(['close', 'update:state'])
@@ -24,5 +25,6 @@ const modalesPorTipo: Record<string, any> = {
    speaker: ParlanteModal,
    faucet: GrifoModal,
    refrigerator: HeladeraModal,
+   blinds: PersianaModal,
 }
 </script>
