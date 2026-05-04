@@ -1,4 +1,4 @@
-import { defineComponent, ref, h } from 'vue'
+import { defineComponent, ref, h, watch } from 'vue'
 import { manipulateDevice } from '@/services/deviceService'
 
 function toggleOnOff(device: any, encendido: ReturnType<typeof ref<boolean>>, emit: any) {
@@ -120,12 +120,26 @@ export const PersianaCardActions = defineComponent({
    props: { device: { type: Object, required: true } },
    emits: ['update:state'],
    setup(props, { emit }) {
-      const abierta = ref(props.device.state?.status === 'opened' || props.device.state?.status === 'opening')
+      const abierta = ref(['opened', 'opening'].includes(props.device.state?.status))
+
+      watch(
+         () => props.device.state?.status,
+         (status) => {
+            abierta.value = ['opened', 'opening'].includes(status)
+         }
+      )
+
       async function toggle(e: Event) {
          e.stopPropagation()
          const action = abierta.value ? 'close' : 'open'
          abierta.value = !abierta.value
-         emit('update:state', abierta.value ? 'opened' : 'closed')
+         if (!props.device.state) props.device.state = {}
+         props.device.state.status = abierta.value ? 'opening' : 'closing'
+         props.device.state.currentLevel = abierta.value ? 100 : 0
+         props.device.state.level = abierta.value ? 100 : 0
+         props.device.state.position = abierta.value ? 100 : 0
+         props.device.state.posicion = abierta.value ? 100 : 0
+         emit('update:state', abierta.value ? 'opening' : 'closing')
          await manipulateDevice(props.device.id, action)
       }
       return () => h('button',

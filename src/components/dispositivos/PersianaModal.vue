@@ -47,7 +47,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import EditableDeviceModal from '@/components/Modales/EditableDeviceModal.vue'
 import { deviceIcons } from '@/utils/deviceIcons'
 import { getDeviceState, manipulateDevice } from '@/services/deviceService'
@@ -81,6 +81,19 @@ const iconClass = computed(() => {
    if (estado.value === 'closed') return 'closed'
    return 'moving'
 })
+
+watch(
+   () => [props.device.state?.status, rawPosicion(props.device)],
+   ([rawStatus, rawLevel]) => {
+      if (cargando.value) return
+
+      const nuevaPosicion = getPosicion({ state: { status: rawStatus, currentLevel: rawLevel, level: rawLevel, position: rawLevel, posicion: rawLevel } })
+      posicionInicial.value = nuevaPosicion
+      posicion.value = nuevaPosicion
+      estado.value = normalizarEstado(String(rawStatus ?? ''), nuevaPosicion)
+      accionPendiente.value = null
+   }
+)
 
 function clamp(value: number) {
    return Math.min(100, Math.max(0, value))
