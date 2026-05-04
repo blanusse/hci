@@ -72,7 +72,7 @@ export async function newDeviceInRoom(name: string, type: Object, room: Object, 
 }
 
 export async function moverDevice(deviceId: string, roomDestinoId: string){
-   await apiDelete(`/rooms/devices/${deviceId}`)
+   await deleteDeviceFromRoom(deviceId)
    await apiPost(`/rooms/${roomDestinoId}/devices/${deviceId}`, {})
 }
 
@@ -86,10 +86,14 @@ export async function deleteDevice(deviceId: string) {
    return await apiDelete(`/devices/${deviceId}`)
 }
 
+export async function deleteDeviceFromRoom(deviceId: string){
+   await apiDelete(`/rooms/devices/${deviceId}`)
+}
 
 export async function deleteRoom(roomId: string) {
    const devices = await getRoomDevices(roomId)
    for(const device of devices){
+      await deleteDeviceFromRoom(device.id)
       await deleteDevice(device.id)
    }
    await deleteRoomFromHome(roomId)
