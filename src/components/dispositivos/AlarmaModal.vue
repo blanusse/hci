@@ -53,6 +53,7 @@
             Cambiar
          </button>
       </div>
+      <p v-if="successMsg" class="success-msg">{{ successMsg }}</p>
    </DeviceModal>
 </template>
 
@@ -71,6 +72,7 @@ const status = ref<string>(props.device.state?.status ?? 'disarmed')
 const codigoActual = ref('')
 const codigoNuevo = ref('')
 const errorMsg = ref('')
+const successMsg = ref('')
 
 const armado = computed(() => status.value !== 'disarmed')
 
@@ -83,35 +85,57 @@ const statusLabel = computed(() => {
    return labels[status.value] ?? status.value
 })
 
+function limpiarMensajes() {
+   errorMsg.value = ''
+   successMsg.value = ''
+}
+
 async function armarCasa() {
    if (codigoActual.value.length < 4) { errorMsg.value = 'Ingresá el código de seguridad'; return }
-   errorMsg.value = ''
-   await manipulateDevice(props.device.id, 'armStay', [codigoActual.value])
-   status.value = 'armedStay'
-   emit('update:state', 'armedStay')
+   limpiarMensajes()
+   try {
+      await manipulateDevice(props.device.id, 'armStay', [codigoActual.value])
+      status.value = 'armedStay'
+      emit('update:state', 'armedStay')
+   } catch (e: any) {
+      errorMsg.value = e.response?.data?.description ?? 'Código incorrecto'
+   }
 }
 
 async function armarRegular() {
    if (codigoActual.value.length < 4) { errorMsg.value = 'Ingresá el código de seguridad'; return }
-   errorMsg.value = ''
-   await manipulateDevice(props.device.id, 'armAway', [codigoActual.value])
-   status.value = 'armedAway'
-   emit('update:state', 'armedAway')
+   limpiarMensajes()
+   try {
+      await manipulateDevice(props.device.id, 'armAway', [codigoActual.value])
+      status.value = 'armedAway'
+      emit('update:state', 'armedAway')
+   } catch (e: any) {
+      errorMsg.value = e.response?.data?.description ?? 'Código incorrecto'
+   }
 }
 
 async function desarmar() {
    if (codigoActual.value.length < 4) { errorMsg.value = 'Ingresá el código de seguridad'; return }
-   errorMsg.value = ''
-   await manipulateDevice(props.device.id, 'disarm', [codigoActual.value])
-   status.value = 'disarmed'
-   emit('update:state', 'disarmed')
+   limpiarMensajes()
+   try {
+      await manipulateDevice(props.device.id, 'disarm', [codigoActual.value])
+      status.value = 'disarmed'
+      emit('update:state', 'disarmed')
+   } catch (e: any) {
+      errorMsg.value = e.response?.data?.description ?? 'Código incorrecto'
+   }
 }
 
 async function cambiarCodigo() {
-   errorMsg.value = ''
-   await manipulateDevice(props.device.id, 'changeSecurityCode', [codigoActual.value, codigoNuevo.value])
-   codigoActual.value = ''
-   codigoNuevo.value = ''
+   limpiarMensajes()
+   try {
+      await manipulateDevice(props.device.id, 'changeSecurityCode', [codigoActual.value, codigoNuevo.value])
+      codigoActual.value = ''
+      codigoNuevo.value = ''
+      successMsg.value = 'Código actualizado correctamente'
+   } catch (e: any) {
+      errorMsg.value = e.response?.data?.description ?? 'No se pudo cambiar el código'
+   }
 }
 </script>
 
@@ -248,5 +272,11 @@ async function cambiarCodigo() {
    font-size: 0.85rem;
    color: #e53935;
    margin: -10px 0 14px;
+}
+
+.success-msg {
+   font-size: 0.85rem;
+   color: var(--success);
+   margin: 6px 0 0;
 }
 </style>
