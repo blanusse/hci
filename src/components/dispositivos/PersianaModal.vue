@@ -152,11 +152,7 @@ function syncDeviceState(status: string, level: number) {
 }
 
 async function enviarPosicionAPi(apiPosicionObjetivo: number) {
-   try {
-      await manipulateDevice(props.device.id, 'setPosition', [apiPosicionObjetivo])
-   } catch {
-      await manipulateDevice(props.device.id, 'setLevel', [apiPosicionObjetivo])
-   }
+   await manipulateDevice(props.device.id, 'setLevel', [apiPosicionObjetivo])
 }
 
 async function leerEstadoReal() {
