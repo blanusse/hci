@@ -43,6 +43,9 @@ export async function getDeviceType(deviceType: string){
    const id = await getDeviceTypeId(deviceType)
    return await apiGet(`devicetypes/${id}`)
 }
+export async function getDeviceState(deviceId: string){
+   return await apiGet(`devices/${deviceId}/state`)
+}
 
 export async function getDeviceTypeById(typeId: string){
    return await apiGet(`devicetypes/${typeId}`)
