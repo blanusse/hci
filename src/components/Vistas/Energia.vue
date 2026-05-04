@@ -470,7 +470,7 @@ const kpis = computed(() => {
   if (period.value === 'dia') {
     return {
       main:      { val: totalKwh.toFixed(1), label: 'Consumo hoy',    trend: 'consumo real', trendClass: 'ekpi-trend--neutral' as const, trendIcon: 'trending-up' as const },
-      secondary: { val: (totalKwh * 30).toFixed(0), label: 'Proyección mes', trend: 'a este ritmo', trendClass: 'ekpi-trend--neutral' as const, trendIcon: 'trending-down' as const },
+      secondary: { val: (totalKwh * 30).toFixed(0), label: 'Proyección mes', trend: 'a este ritmo', trendClass: 'ekpi-trend--neutral' as const, trendIcon: 'trending-up' as const },
       cost: costStr, co2: co2.toString(), co2Trend: `${co2} kg CO₂`,
       chartTitle: 'Consumo por hora', chartSub: 'hoy · kWh', periodLabel: 'Hoy',
     }
