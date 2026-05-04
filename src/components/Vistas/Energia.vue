@@ -278,35 +278,78 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { getHomes , getRooms, getRoomDevices} from '@/services/homeService'
-import {
-  getEnergyKpis,
-  getHomeEnergyData,
-  getEnergyRoomData,
-  getTopConsumers,
-  getHourlyEnergyData,
-  type Period,
-} from '@/utils/energyMock'
+import { getHomes, getRooms, getRoomDevices } from '@/services/homeService'
+import { getDeviceTypesPowerUsage } from '@/services/deviceService'
+import { getHourlyEnergyData, roomIcon, type Period } from '@/utils/energyMock'
 import EnergyIcon from '@/components/EnergyIcon.vue'
-
 
 interface Home { id: string; name: string }
 interface Room { id: string; name: string }
+interface DeviceInfo {
+  id: string
+  name: string
+  typeId: string
+  powerWatts: number
+  on: boolean
+  roomId: string
+  roomName: string
+  homeId: string
+  homeName: string
+}
 
-const homes = ref<Home[]>([])
+const HOME_COLORS = ['#1A237E', '#6366F1']
+const COST_PER_KWH = 14.5
+const CO2_PER_KWH = 0.37
+
+const homes        = ref<Home[]>([])
 const selectedHomes = ref<Home[]>([])
-const period = ref<Period>('dia')
-const roomsByHome = ref<Record<string, Room[]>>({})
+const period       = ref<Period>('dia')
+const allDevices   = ref<DeviceInfo[]>([])
+
+function periodHours(p: Period): number {
+  if (p === 'dia') return 8
+  if (p === 'semana') return 56
+  return 240
+}
+
+function homeColor(homeId: string): string {
+  const idx = homes.value.findIndex(h => h.id === homeId)
+  return HOME_COLORS[Math.max(0, idx) % HOME_COLORS.length]
+}
 
 onMounted(async () => {
   try {
-    const data = await getHomes()
-    homes.value = data.result ?? data
+    const [homesData, powerByType] = await Promise.all([
+      getHomes(),
+      getDeviceTypesPowerUsage(),
+    ])
+    homes.value = homesData.result ?? homesData
     selectedHomes.value = [...homes.value]
-    for (const home of homes.value) {                         
-      const roomsData = await getRooms(home.id)                                              
-      roomsByHome.value[home.id] = roomsData.result ?? roomsData
-    }   
+
+    const devicesList: DeviceInfo[] = []
+    await Promise.all(homes.value.map(async (home) => {
+      const roomsData = await getRooms(home.id)
+      const rooms: Room[] = roomsData.result ?? roomsData
+      await Promise.all(rooms.map(async (room) => {
+        try {
+          const devs = await getRoomDevices(room.id)
+          for (const d of (devs.result ?? devs)) {
+            devicesList.push({
+              id: d.id,
+              name: d.name,
+              typeId: d.type?.id ?? '',
+              powerWatts: powerByType[d.type?.id ?? ''] ?? 0,
+              on: d.state?.status === 'on',
+              roomId: room.id,
+              roomName: room.name,
+              homeId: home.id,
+              homeName: home.name,
+            })
+          }
+        } catch {}
+      }))
+    }))
+    allDevices.value = devicesList
   } catch {
     // si falla la API, dejamos vacío
   }
@@ -314,31 +357,104 @@ onMounted(async () => {
 
 function toggleHome(home: Home) {
   const idx = selectedHomes.value.findIndex(h => h.id === home.id)
-  if (idx >= 0) {
-    selectedHomes.value.splice(idx, 1)
-  } else {
-    selectedHomes.value.push(home)
+  if (idx >= 0) selectedHomes.value.splice(idx, 1)
+  else selectedHomes.value.push(home)
+}
+
+// ── Computed: dispositivos de las casas seleccionadas con kWh del período ──
+const deviceConsumption = computed(() => {
+  const selectedIds = new Set(selectedHomes.value.map(h => h.id))
+  const hours = periodHours(period.value)
+  return allDevices.value
+    .filter(d => selectedIds.has(d.homeId))
+    .map(d => ({ ...d, kwh: parseFloat(((d.powerWatts * hours) / 1000).toFixed(2)) }))
+})
+
+// ── Desglose por habitación ──
+const roomConsumption = computed(() => {
+  const map: Record<string, { name: string; homeId: string; homeName: string; kwh: number }> = {}
+  for (const d of deviceConsumption.value) {
+    if (!map[d.roomId]) map[d.roomId] = { name: d.roomName, homeId: d.homeId, homeName: d.homeName, kwh: 0 }
+    map[d.roomId].kwh += d.kwh
   }
-}
+  const list = Object.values(map)
+  const max = Math.max(...list.map(r => r.kwh), 0.1)
+  return list.map(r => ({
+    ...r,
+    icon: roomIcon(r.name),
+    color: homeColor(r.homeId),
+    kwh: parseFloat(r.kwh.toFixed(2)),
+    pct: Math.round((r.kwh / max) * 100),
+  }))
+})
 
-// Datos derivados (recalculan automáticamente cuando cambia selectedHomes o period).
-const kpis            = computed(() => getEnergyKpis(selectedHomes.value, homes.value, period.value))
-const homeConsumption = computed(() => getHomeEnergyData(selectedHomes.value, homes.value, period.value))
-const roomConsumption = computed(() =>getEnergyRoomData(selectedHomes.value, homes.value, roomsByHome.value))              
-const topDevices      = computed(() => getTopConsumers(selectedHomes.value, homes.value))
-const selectedNames   = computed(() => selectedHomes.value.map(h => h.name).join(' · '))
-const barChartData    = computed(() => getHourlyEnergyData(selectedHomes.value, homes.value, period.value))
+// ── Top 5 consumidores ──
+const topDevices = computed(() => {
+  const sorted = [...deviceConsumption.value].sort((a, b) => b.kwh - a.kwh).slice(0, 5)
+  const maxKwh = sorted[0]?.kwh || 1
+  return sorted.map(d => ({
+    ...d,
+    icon: d.typeId,
+    pct: Math.round((d.kwh / maxKwh) * 100),
+  }))
+})
 
-// Eje Y: calcula el valor máximo del chart y arma 4 ticks (top → 0).
-const HOME_COLORS = ['#1A237E', '#6366F1']
-function homeColor(homeId: string): string {
-  const idx = homes.value.findIndex(h => h.id === homeId)
-  return HOME_COLORS[Math.max(0, idx) % HOME_COLORS.length]
-}
+// ── Consumo por hogar ──
+const homeConsumption = computed(() => {
+  const map: Record<string, { name: string; kwh: number }> = {}
+  for (const d of deviceConsumption.value) {
+    if (!map[d.homeId]) map[d.homeId] = { name: d.homeName, kwh: 0 }
+    map[d.homeId].kwh += d.kwh
+  }
+  const list = selectedHomes.value.map(h => ({
+    id: h.id,
+    name: h.name,
+    kwh: parseFloat((map[h.id]?.kwh ?? 0).toFixed(2)),
+    color: homeColor(h.id),
+  }))
+  const max = Math.max(...list.map(v => v.kwh), 0.1)
+  return list.map(v => ({ ...v, pct: Math.round((v.kwh / max) * 100) }))
+})
+
+// ── KPIs ──
+const kpis = computed(() => {
+  const totalKwh = homeConsumption.value.reduce((s, h) => s + h.kwh, 0)
+  const cost = Math.round(totalKwh * COST_PER_KWH)
+  const co2  = Math.round(totalKwh * CO2_PER_KWH)
+  const costStr = `$${cost.toLocaleString('es-AR')}`
+
+  if (period.value === 'dia') {
+    return {
+      main:      { val: totalKwh.toFixed(1), label: 'Consumo hoy',    trend: 'consumo real', trendClass: 'ekpi-trend--neutral' as const, trendIcon: 'trending-up' as const },
+      secondary: { val: (totalKwh * 30).toFixed(0), label: 'Proyección mes', trend: 'a este ritmo', trendClass: 'ekpi-trend--neutral' as const, trendIcon: 'trending-down' as const },
+      cost: costStr, co2: co2.toString(), co2Trend: `${co2} kg CO₂`,
+      chartTitle: 'Consumo por hora', chartSub: 'hoy · kWh', periodLabel: 'Hoy',
+    }
+  }
+  if (period.value === 'semana') {
+    return {
+      main:      { val: totalKwh.toFixed(1), label: 'Esta semana',    trend: 'consumo real', trendClass: 'ekpi-trend--neutral' as const, trendIcon: 'trending-up' as const },
+      secondary: { val: (totalKwh * 4.3).toFixed(0), label: 'Proyección mes', trend: 'a este ritmo', trendClass: 'ekpi-trend--neutral' as const, trendIcon: 'trending-down' as const },
+      cost: costStr, co2: co2.toString(), co2Trend: `${co2} kg CO₂`,
+      chartTitle: 'Consumo diario', chartSub: 'últimos 7 días · kWh', periodLabel: 'Esta semana',
+    }
+  }
+  return {
+    main:      { val: totalKwh.toFixed(0), label: 'Este mes',    trend: 'consumo real', trendClass: 'ekpi-trend--neutral' as const, trendIcon: 'trending-down' as const },
+    secondary: { val: Math.round(totalKwh * 1.08).toString(), label: 'Proyección', trend: '+8% tendencia', trendClass: 'ekpi-trend--neutral' as const, trendIcon: 'trending-down' as const },
+    cost: costStr, co2: co2.toString(), co2Trend: `${co2} kg CO₂`,
+    chartTitle: 'Consumo semanal', chartSub: 'este mes · kWh', periodLabel: 'Este mes',
+  }
+})
+
+const selectedNames = computed(() => selectedHomes.value.map(h => h.name).join(' · '))
+
+// Bar chart usa mock (no hay serie temporal real por hora/día)
+const barChartData = computed(() => getHourlyEnergyData(selectedHomes.value, homes.value, period.value))
+
 const yAxisTicks = computed(() => {
   const allKwh = barChartData.value.flatMap(g => g.values.map(v => v.kwh))
   const max = Math.max(...allKwh, 0.4)
-  // Redondeamos para arriba al múltiplo de 0.4 más cercano (look "limpio")
   const top = Math.ceil(max / 0.4) * 0.4
   return [top, top * 0.66, top * 0.33, 0].map(n => n.toFixed(1))
 })
