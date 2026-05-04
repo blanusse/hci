@@ -235,7 +235,7 @@ function toggleDark() {
 .avatar-btn:hover { opacity: 0.85; background: var(--accent) !important; }
 
 .avatar-initials {
-  color: #fff;
+  color: var(--surface);
   font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: -0.5px;
@@ -247,7 +247,7 @@ function toggleDark() {
   top: 4px;
   right: 4px;
   background: var(--danger);
-  color: var(--surface);
+  color: var(--text);
   font-size: 0.6rem;
   font-weight: 700;
   width: 16px;

@@ -90,7 +90,7 @@ const previewStyle = computed(() => {
 })
 
 const swatches = [
-   { label: 'Blanca',   color: 'var(--surface)', hex: 'var(--surface)' },
+   { label: 'Blanca',   color: '#FFFFFF', hex: '#FFFFFF' },
    { label: 'Natural',  color: '#FFF9E6', hex: '#FFF9E6' },
    { label: 'Cálida',   color: '#FFD580', hex: '#FFD580' },
    { label: 'Naranja',  color: '#FFA040', hex: '#FFA040' },

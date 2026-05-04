@@ -146,7 +146,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { getRooms, getRoomDevices, getHome } from '@/services/homeService'
 import { deviceIcons } from '@/utils/deviceIcons'
