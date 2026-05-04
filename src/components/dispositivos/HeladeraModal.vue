@@ -16,20 +16,21 @@
       </div>
 
       <div class="section-label">Temperatura heladera</div>
-      <div class="slider-row">
+      <div class="slider-row slider-row--disabled">
          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/>
          </svg>
-         <input type="range" min="2" max="8" v-model.number="temperatura" class="slider" />
+         <input type="range" min="2" max="8" :value="temperatura" class="slider" disabled />
          <span class="slider-val">{{ temperatura }}°C</span>
       </div>
+      <div class="helper-text">La API de esta heladera no permite cambiar esta temperatura manualmente. Se ajusta segun el modo.</div>
 
       <div class="section-label">Temperatura freezer</div>
       <div class="slider-row">
          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93 4.93 19.07"/>
          </svg>
-         <input type="range" min="-20" max="-8" v-model.number="temperaturaFreezer" class="slider" />
+         <input type="range" min="-20" max="-8" v-model.number="temperaturaFreezer" class="slider" @input="markDirty" />
          <span class="slider-val">{{ temperaturaFreezer }}°C</span>
       </div>
 
@@ -40,7 +41,7 @@
             :key="m.value"
             class="option-btn"
             :class="{ active: modo === m.value }"
-            @click="modo = m.value"
+            @click="seleccionarModo(m.value)"
          >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" v-html="m.icon"></svg>
             <span>{{ m.label }}</span>
@@ -50,19 +51,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import EditableDeviceModal from '@/components/Modales/EditableDeviceModal.vue'
 import { deviceIcons } from '@/utils/deviceIcons'
-import { manipulateDevice } from '@/services/deviceService'
+import { getDeviceState, manipulateDevice } from '@/services/deviceService'
 
 const props = defineProps<{ device: any }>()
 const emit = defineEmits(['close', 'update:state'])
 
-const temperatura = ref<number>(props.device.state?.temperature ?? 5)
-const temperaturaFreezer = ref<number>(props.device.state?.freezerTemperature ?? -12)
+const temperatura = ref<number>(props.device.state?.temperature ?? props.device.state?.temp ?? 5)
+const temperaturaFreezer = ref<number>(props.device.state?.freezerTemperature ?? props.device.state?.tempFreezer ?? -12)
 const modo = ref<string>(props.device.state?.mode ?? 'normal')
 const guardando = ref(false)
-const inicial = ref({ temperatura: temperatura.value, temperaturaFreezer: temperaturaFreezer.value, modo: modo.value })
+const draftDirty = ref(false)
+const inicial = ref(snapshot())
 
 const modos = [
    { value: 'normal', label: 'Normal', icon: `<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>` },
@@ -70,12 +72,75 @@ const modos = [
    { value: 'vacaciones', label: 'Vacaciones', icon: `<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>` },
 ]
 
+onMounted(async () => {
+   const s = await leerEstadoReal()
+   if (!s) return
+   aplicarEstadoReal(s)
+   inicial.value = snapshot()
+   draftDirty.value = false
+})
+
 const modoLabel = computed(() => modos.find(m => m.value === modo.value)?.label ?? modo.value)
-const hayCambios = computed(() =>
-   temperatura.value !== inicial.value.temperatura ||
-   temperaturaFreezer.value !== inicial.value.temperaturaFreezer ||
-   modo.value !== inicial.value.modo
-)
+const hayCambios = computed(() => draftDirty.value || temperaturaFreezer.value !== inicial.value.temperaturaFreezer || modo.value !== inicial.value.modo)
+
+function snapshot() {
+   return {
+      temperatura: temperatura.value,
+      temperaturaFreezer: temperaturaFreezer.value,
+      modo: modo.value,
+   }
+}
+
+function clampFridge(value: number) {
+   return Math.min(8, Math.max(2, value))
+}
+
+function clampFreezer(value: number) {
+   return Math.min(-8, Math.max(-20, value))
+}
+
+function fridgeTempForMode(current: number, nextMode: string) {
+   if (nextMode === 'vacaciones') return 8
+   return current
+}
+
+function markDirty() {
+   draftDirty.value = true
+}
+
+function seleccionarModo(value: string) {
+   draftDirty.value = true
+   modo.value = value
+   temperatura.value = fridgeTempForMode(temperatura.value, value)
+
+   if (value === 'fiesta') {
+      temperaturaFreezer.value = -20
+   }
+}
+
+async function leerEstadoReal() {
+   try {
+      return await getDeviceState(props.device.id)
+   } catch {
+      return null
+   }
+}
+
+function aplicarEstadoReal(state: any) {
+   temperatura.value = clampFridge(Number(state?.temperature ?? state?.temp ?? temperatura.value))
+   temperaturaFreezer.value = clampFreezer(Number(state?.freezerTemperature ?? state?.tempFreezer ?? temperaturaFreezer.value))
+   modo.value = String(state?.mode ?? modo.value)
+   temperatura.value = fridgeTempForMode(temperatura.value, modo.value)
+}
+
+function syncDeviceState() {
+   if (!props.device.state) props.device.state = {}
+   props.device.state.temperature = temperatura.value
+   props.device.state.temp = temperatura.value
+   props.device.state.freezerTemperature = temperaturaFreezer.value
+   props.device.state.tempFreezer = temperaturaFreezer.value
+   props.device.state.mode = modo.value
+}
 
 function cancelar() {
    emit('close')
@@ -84,20 +149,23 @@ function cancelar() {
 async function aceptar() {
    guardando.value = true
    try {
-      if (temperatura.value !== inicial.value.temperatura) {
-         await manipulateDevice(props.device.id, 'setTemperature', [temperatura.value])
-      }
-      if (temperaturaFreezer.value !== inicial.value.temperaturaFreezer) {
-         await manipulateDevice(props.device.id, 'setFreezerTemperature', [temperaturaFreezer.value])
-      }
-      if (modo.value !== inicial.value.modo) {
+      const antes = inicial.value
+
+      if (modo.value !== antes.modo) {
          await manipulateDevice(props.device.id, 'setMode', [modo.value])
       }
-      if (!props.device.state) props.device.state = {}
-      props.device.state.temperature = temperatura.value
-      props.device.state.freezerTemperature = temperaturaFreezer.value
-      props.device.state.mode = modo.value
-      inicial.value = { temperatura: temperatura.value, temperaturaFreezer: temperaturaFreezer.value, modo: modo.value }
+      if (temperaturaFreezer.value !== antes.temperaturaFreezer) {
+         await manipulateDevice(props.device.id, 'setFreezerTemperature', [temperaturaFreezer.value])
+      }
+
+      const estadoReal = await leerEstadoReal()
+      if (estadoReal) {
+         aplicarEstadoReal(estadoReal)
+      }
+
+      syncDeviceState()
+      inicial.value = snapshot()
+      draftDirty.value = false
       emit('update:state', props.device.state)
       emit('close')
    } finally {
@@ -118,8 +186,11 @@ async function aceptar() {
 .dev-status { font-size: 0.85rem; color: var(--text-muted); margin-top: 2px; }
 .section-label { font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 10px; }
 .slider-row { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; color: var(--text-muted); }
+.slider-row--disabled { opacity: 0.65; }
 .slider { flex: 1; accent-color: var(--accent); cursor: pointer; }
+.slider:disabled { cursor: not-allowed; }
 .slider-val { font-size: 0.9rem; font-weight: 600; color: var(--text); min-width: 46px; text-align: right; }
+.helper-text { margin-top: -10px; margin-bottom: 20px; font-size: 0.82rem; color: var(--text-muted); line-height: 1.35; }
 .option-row { display: flex; gap: 8px; margin-bottom: 20px; }
 .option-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 10px 8px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--surface2); color: var(--text-muted); font-size: 0.82rem; font-weight: 600; font-family: inherit; cursor: pointer; transition: all 0.15s; }
 .option-btn:hover:not(.active) { border-color: var(--accent); color: var(--accent); }

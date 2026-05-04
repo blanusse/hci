@@ -59,7 +59,6 @@ const props = defineProps<{
 const emit = defineEmits(['close', 'update:state'])
 
 const cargando = ref(false)
-const usaPosicionInvertida = ref(inferirPosicionInvertida(props.device))
 const posicionInicial = ref(getPosicion(props.device))
 const posicion = ref(posicionInicial.value)
 const estado = ref(normalizarEstado(props.device.state?.status, posicion.value))
@@ -95,21 +94,12 @@ function rawPosicion(device: any) {
       ?? 0
 }
 
-function inferirPosicionInvertida(device: any) {
-   const status = String(device?.state?.status ?? '').toLowerCase()
-   const raw = clamp(Number(rawPosicion(device)) || 0)
-
-   if (['closed', 'close', 'cerrada'].includes(status) && raw >= 50) return true
-   if (['opened', 'open', 'abierta'].includes(status) && raw <= 50) return true
-   return false
-}
-
 function toApiPosition(uiPosition: number) {
-   return usaPosicionInvertida.value ? 100 - uiPosition : uiPosition
+   return uiPosition
 }
 
 function fromApiPosition(apiPosition: number) {
-   return usaPosicionInvertida.value ? 100 - apiPosition : apiPosition
+   return apiPosition
 }
 
 function getPosicion(device: any) {
@@ -164,6 +154,26 @@ async function leerEstadoReal() {
    }
 }
 
+function sleep(ms: number) {
+   return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+async function esperarPosicionObjetivo(posicionObjetivo: number, intentos = 8) {
+   for (let i = 0; i < intentos; i++) {
+      const estadoReal = await leerEstadoReal()
+      if (estadoReal) {
+         const posicionActual = getPosicion({ state: estadoReal })
+         if (Math.abs(posicionActual - posicionObjetivo) <= 5) {
+            return { estadoReal, posicionActual }
+         }
+      }
+      await sleep(350)
+   }
+   const estadoReal = await leerEstadoReal()
+   if (!estadoReal) return null
+   return { estadoReal, posicionActual: getPosicion({ state: estadoReal }) }
+}
+
 async function ejecutarAccionPersiana(accion: string, posicionObjetivo: number) {
    const apiPosicionObjetivo = toApiPosition(posicionObjetivo)
 
@@ -201,14 +211,7 @@ async function ejecutarAccionPersiana(accion: string, posicionObjetivo: number) 
    ) || apiPosicionObjetivo)
 
    const uiSegunActual = fromApiPosition(posicionReportada)
-   const uiSegunInversa = usaPosicionInvertida.value ? posicionReportada : 100 - posicionReportada
-
    if (Math.abs(uiSegunActual - posicionObjetivo) <= 8) return
-
-   if (Math.abs(uiSegunInversa - posicionObjetivo) < Math.abs(uiSegunActual - posicionObjetivo)) {
-      usaPosicionInvertida.value = !usaPosicionInvertida.value
-      await enviarPosicionAPi(toApiPosition(posicionObjetivo))
-   }
 }
 
 function abrir() {
@@ -240,10 +243,10 @@ async function aceptar() {
 
       await ejecutarAccionPersiana(accion, nuevaPosicion)
 
-      const estadoReal = await leerEstadoReal()
-      const posicionFinal = estadoReal
-         ? getPosicion({ state: estadoReal })
-         : nuevaPosicion
+      const resultadoFinal = await esperarPosicionObjetivo(nuevaPosicion)
+      const estadoReal = resultadoFinal?.estadoReal ?? await leerEstadoReal()
+      const posicionFinal = resultadoFinal?.posicionActual
+         ?? (estadoReal ? getPosicion({ state: estadoReal }) : nuevaPosicion)
       const estadoFinal = estadoReal?.status
          ? normalizarEstado(estadoReal.status, posicionFinal)
          : nuevoEstado
