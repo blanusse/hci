@@ -92,7 +92,7 @@
       </div>
       <p class="perm-empty-title">Sin miembros todavía</p>
       <p class="perm-empty-sub">Agregá usuarios para compartir este hogar con tu familia.</p>
-      <button class="btn btn-primary btn-add-member" @click="showModal = true">
+      <button class="btn btn-primary btn-add-member" @click="openModal">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
           <circle cx="9" cy="7" r="4"></circle>
@@ -120,7 +120,7 @@
       </button>
     </div>
 
-    <button v-if="members.length > 0" class="btn btn-primary btn-add-member" @click="showModal = true">
+    <button v-if="members.length > 0" class="btn btn-primary btn-add-member" @click="openModal">
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
         <circle cx="9" cy="7" r="4"></circle>
@@ -140,23 +140,31 @@
         </button>
       </div>
       <div class="modal-body">
-        <p class="modal-desc">
-          Ingresá el email de la persona que querés invitar a <strong>{{ selectedHome?.name }}</strong>.
-        </p>
-        <div class="modal-field">
-          <label class="modal-field-label">Email</label>
-          <input class="modal-input" v-model="email" type="email" placeholder="usuario@ejemplo.com" autocomplete="off" />
-        </div>
-        <p v-if="inviteError" class="modal-error">{{ inviteError }}</p>
-        <p v-if="inviteSuccess" class="modal-success">Invitación enviada correctamente.</p>
-        <p class="modal-info">
-          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-          El usuario debe estar registrado en HomeSmart.
-        </p>
+        <template v-if="homes.length === 0">
+          <div class="modal-no-homes">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+            Para invitar a un miembro primero debe haber por lo menos un hogar creado.
+          </div>
+        </template>
+        <template v-else>
+          <p class="modal-desc">
+            Ingresá el email de la persona que querés invitar a <strong>{{ selectedHome?.name }}</strong>.
+          </p>
+          <div class="modal-field">
+            <label class="modal-field-label">Email</label>
+            <input class="modal-input" v-model="email" type="email" placeholder="usuario@ejemplo.com" autocomplete="off" />
+          </div>
+          <p v-if="inviteError" class="modal-error">{{ inviteError }}</p>
+          <p v-if="inviteSuccess" class="modal-success">Invitación enviada correctamente a {{ sentEmail }}.</p>
+          <p class="modal-info">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+            El usuario debe estar registrado en HomeSmart.
+          </p>
+        </template>
       </div>
       <div class="modal-footer">
         <button class="modal-btn modal-btn--secondary" @click="closeModal">Cancelar</button>
-        <button class="modal-btn modal-btn--primary" :disabled="!email.trim() || sending" @click="sendInvitation">
+        <button v-if="homes.length > 0" class="modal-btn modal-btn--primary" :disabled="!email.trim() || sending" @click="sendInvitation">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/></svg>
           {{ sending ? 'Enviando…' : 'Enviar invitación' }}
         </button>
@@ -182,6 +190,7 @@ const email = ref('')
 const sending = ref(false)
 const inviteError = ref('')
 const inviteSuccess = ref(false)
+const sentEmail = ref('')
 
 const members = ref<any[]>([])
 const currentUser = ref<any>(null)
@@ -202,6 +211,13 @@ onMounted(async () => {
   }
 })
 
+function openModal() {
+  email.value = ''
+  inviteError.value = ''
+  inviteSuccess.value = false
+  showModal.value = true
+}
+
 function closeModal() {
   showModal.value = false
   email.value = ''
@@ -215,7 +231,9 @@ async function sendInvitation() {
   inviteError.value = ''
   inviteSuccess.value = false
   try {
-    await shareHome(selectedHome.value.id, [email.value.trim()])
+    const trimmed = email.value.trim()
+    await shareHome(selectedHome.value.id, [trimmed])
+    sentEmail.value = trimmed
     inviteSuccess.value = true
     email.value = ''
   } catch (err: any) {
@@ -590,5 +608,24 @@ font-family: inherit;
 .btn-add-member {
   margin-top: 12px;
 }
+
+.modal-no-homes {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1.5px solid rgba(239, 68, 68, 0.3);
+  border-radius: 10px;
+  padding: 16px;
+  font-size: 1.0625rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+.modal-no-homes svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--color-red);
+}
+
 
 </style>
