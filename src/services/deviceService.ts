@@ -52,11 +52,11 @@ export async function getDeviceLogs(limit: number, offset:number) {
    return await apiGet(`/devices/logs/limit/${limit}/offset/${offset}`)
 }
 
-export async function getDeviceTypesPowerUsage(): Promise<Record<string, number>> {
+export async function getDeviceTypesInfo(): Promise<Record<string, { powerWatts: number; name: string }>> {
    const types = await apiGet('/devicetypes')
-   const map: Record<string, number> = {}
+   const map: Record<string, { powerWatts: number; name: string }> = {}
    for (const t of types) {
-      map[t.id] = t.powerUsage ?? 0
+      map[t.id] = { powerWatts: t.powerUsage ?? 0, name: t.name ?? '' }
    }
    return map
 }
