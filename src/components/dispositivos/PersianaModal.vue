@@ -1,5 +1,5 @@
 <template>
-   <EditableDeviceModal :dirty="hayCambios" :saving="cargando" @cancel="cancelar" @confirm="aceptar">
+   <DeviceModal @close="$emit('close')">
       <template #header>
          <div class="dev-icon" :class="iconClass">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-html="deviceIcons['blinds']"></svg>
@@ -13,18 +13,18 @@
       <div class="blind-preview" :class="iconClass">
          <div class="blind-rail"></div>
          <div class="blind-window">
-            <div class="blind-cover" :style="{ height: `${100 - posicion}%` }"></div>
+            <div class="blind-cover" :style="{ height: `${100 - position}%` }"></div>
          </div>
          <div class="blind-meta">
-            <span class="blind-value">{{ posicion }}%</span>
+            <span class="blind-value">{{ position }}%</span>
          </div>
       </div>
 
       <div class="ctrl-row">
-         <button class="ctrl-btn" :class="{ active: posicion === 0 }" :disabled="cargando" @click="cerrar">
+         <button class="ctrl-btn" :class="{ active: position === 0 }" :disabled="cargando" @click="changeLevel(0); position=0">
             Cerrar
          </button>
-         <button class="ctrl-btn" :class="{ active: posicion === 100 }" :disabled="cargando" @click="abrir">
+         <button class="ctrl-btn" :class="{ active: position === 100 }" :disabled="cargando" @click="changeLevel(100); position=100">
             Abrir
          </button>
       </div>
@@ -33,92 +33,71 @@
       <div class="slider-row">
          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-html="deviceIcons['blinds']"></svg>
          <input
-            v-model="posicion"
+            v-model="position"
             type="range"
             min="0"
             max="100"
             class="slider"
             :disabled="cargando"
-            @input="accionPendiente = 'setPosition'"
+            @change="changeLevel(position)"
          />
-         <span class="slider-val">{{ posicion }}%</span>
+         <span class="slider-val">{{ position }}%</span>
       </div>
-   </EditableDeviceModal>
+   </DeviceModal>
 </template>
 
+
+
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
-import EditableDeviceModal from '@/components/Modales/EditableDeviceModal.vue'
+import { onMounted, ref, computed } from 'vue'
 import { deviceIcons } from '@/utils/deviceIcons'
-import { getDeviceState, manipulateDevice } from '@/services/deviceService'
+import {manipulateDevice, getDeviceState } from '@/services/deviceService'
+import DeviceModal from '@/components/Modales/DeviceModal.vue';
 
 const props = defineProps<{
    device: any
 }>()
 
+
+onMounted(async () => {
+   try {
+      const s = await getDeviceState(props.device.id)
+      if (s) {
+         position.value = s.currentLevel ?? s.level ?? s.position ?? position.value
+      }
+   } catch {}
+})
+async function changeLevel(newLevel:number) {
+   if(newLevel==0){
+      await manipulateDevice(props.device.id, 'down')
+   }
+   else if(newLevel==100){
+      await manipulateDevice(props.device.id, 'up')
+   }
+   await manipulateDevice(props.device.id, 'setLevel', [Math.round(newLevel)])
+}
+
+
 const emit = defineEmits(['close', 'update:state'])
 
 const cargando = ref(false)
-const posicionInicial = ref(getPosicion(props.device))
-const posicion = ref(posicionInicial.value)
-const estado = ref(normalizarEstado(props.device.state?.status, posicion.value))
-const accionPendiente = ref<string | null>(null)
-
-const hayCambios = computed(() => posicion.value !== posicionInicial.value || accionPendiente.value !== null)
+const position = ref<number>(props.device.state?.currentLevel ?? props.device.state?.level ?? props.device.level ?? 0)
 
 const estadoTexto = computed(() => {
-   const labels: Record<string, string> = {
-      opened: 'Abierta',
-      opening: 'Abriéndose',
-      closed: 'Cerrada',
-      closing: 'Cerrándose',
-   }
-   return labels[estado.value] ?? 'Estado desconocido'
+   if (position.value <= 0)   return 'Cerrada'
+   if (position.value >= 100) return 'Abierta'
+   return `${position.value}% abierta`
 })
 
 const iconClass = computed(() => {
-   if (estado.value === 'opened') return 'open'
-   if (estado.value === 'closed') return 'closed'
+   if (position.value <= 0)   return 'closed'
+   if (position.value >= 100) return 'open'
    return 'moving'
 })
 
-watch(
-   () => [props.device.state?.status, rawPosicion(props.device)],
-   ([rawStatus, rawLevel]) => {
-      if (cargando.value) return
 
-      const nuevaPosicion = getPosicion({ state: { status: rawStatus, currentLevel: rawLevel, level: rawLevel, position: rawLevel, posicion: rawLevel } })
-      posicionInicial.value = nuevaPosicion
-      posicion.value = nuevaPosicion
-      estado.value = normalizarEstado(String(rawStatus ?? ''), nuevaPosicion)
-      accionPendiente.value = null
-   }
-)
 
-function clamp(value: number) {
-   return Math.min(100, Math.max(0, value))
-}
 
-function rawPosicion(device: any) {
-   return device?.state?.currentLevel
-      ?? device?.state?.level
-      ?? device?.state?.position
-      ?? device?.state?.posicion
-      ?? 0
-}
-
-function toApiPosition(uiPosition: number) {
-   return uiPosition
-}
-
-function fromApiPosition(apiPosition: number) {
-   return apiPosition
-}
-
-function getPosicion(device: any) {
-   const raw = clamp(Number(rawPosicion(device)) || 0)
-   return fromApiPosition(raw)
-}
 
 function normalizarEstado(rawStatus: string | undefined, currentPosition: number) {
    const status = String(rawStatus ?? '').toLowerCase()
@@ -133,144 +112,9 @@ function normalizarEstado(rawStatus: string | undefined, currentPosition: number
    return 'opening'
 }
 
-function estadoDesdePosicion(currentPosition: number, previousPosition: number) {
-   if (currentPosition <= 0) return 'closed'
-   if (currentPosition >= 100) return 'opened'
-   if (currentPosition > previousPosition) return 'opening'
-   if (currentPosition < previousPosition) return 'closing'
-   return estado.value
-}
 
-function syncDeviceState(status: string, level: number) {
-   if (!props.device.state) props.device.state = {}
-   props.device.state.status = status
-   const apiLevel = toApiPosition(level)
-   props.device.state.currentLevel = apiLevel
-   props.device.state.level = apiLevel
-   props.device.state.position = apiLevel
-   props.device.state.posicion = apiLevel
-}
 
-async function enviarPosicionAPi(apiPosicionObjetivo: number) {
-   await manipulateDevice(props.device.id, 'setLevel', [apiPosicionObjetivo])
-}
 
-async function leerEstadoReal() {
-   try {
-      return await getDeviceState(props.device.id)
-   } catch {
-      return null
-   }
-}
-
-function sleep(ms: number) {
-   return new Promise(resolve => setTimeout(resolve, ms))
-}
-
-async function esperarPosicionObjetivo(posicionObjetivo: number, intentos = 8) {
-   for (let i = 0; i < intentos; i++) {
-      const estadoReal = await leerEstadoReal()
-      if (estadoReal) {
-         const posicionActual = getPosicion({ state: estadoReal })
-         if (Math.abs(posicionActual - posicionObjetivo) <= 5) {
-            return { estadoReal, posicionActual }
-         }
-      }
-      await sleep(350)
-   }
-   const estadoReal = await leerEstadoReal()
-   if (!estadoReal) return null
-   return { estadoReal, posicionActual: getPosicion({ state: estadoReal }) }
-}
-
-async function ejecutarAccionPersiana(accion: string, posicionObjetivo: number) {
-   const apiPosicionObjetivo = toApiPosition(posicionObjetivo)
-
-   if (accion === 'open') {
-      try {
-         await manipulateDevice(props.device.id, 'open')
-         return
-      } catch {
-         await enviarPosicionAPi(apiPosicionObjetivo)
-         return
-      }
-   }
-
-   if (accion === 'close') {
-      try {
-         await manipulateDevice(props.device.id, 'close')
-         return
-      } catch {
-         await enviarPosicionAPi(apiPosicionObjetivo)
-         return
-      }
-   }
-
-   await enviarPosicionAPi(apiPosicionObjetivo)
-
-   const estadoReal = await leerEstadoReal()
-   if (!estadoReal) return
-
-   const posicionReportada = clamp(Number(
-      estadoReal.currentLevel
-      ?? estadoReal.level
-      ?? estadoReal.position
-      ?? estadoReal.posicion
-      ?? apiPosicionObjetivo
-   ) || apiPosicionObjetivo)
-
-   const uiSegunActual = fromApiPosition(posicionReportada)
-   if (Math.abs(uiSegunActual - posicionObjetivo) <= 8) return
-}
-
-function abrir() {
-   const anterior = posicion.value
-   posicion.value = 100
-   estado.value = estadoDesdePosicion(100, anterior)
-   accionPendiente.value = 'open'
-}
-
-function cerrar() {
-   const anterior = posicion.value
-   posicion.value = 0
-   estado.value = estadoDesdePosicion(0, anterior)
-   accionPendiente.value = 'close'
-}
-
-function cancelar() {
-   accionPendiente.value = null
-   emit('close')
-}
-
-async function aceptar() {
-   cargando.value = true
-   try {
-      const nuevaPosicion = clamp(Number(posicion.value))
-      const nuevoEstado = estadoDesdePosicion(nuevaPosicion, posicionInicial.value)
-      const accion = accionPendiente.value
-         ?? (nuevaPosicion === 100 ? 'open' : nuevaPosicion === 0 ? 'close' : 'setPosition')
-
-      await ejecutarAccionPersiana(accion, nuevaPosicion)
-
-      const resultadoFinal = await esperarPosicionObjetivo(nuevaPosicion)
-      const estadoReal = resultadoFinal?.estadoReal ?? await leerEstadoReal()
-      const posicionFinal = resultadoFinal?.posicionActual
-         ?? (estadoReal ? getPosicion({ state: estadoReal }) : nuevaPosicion)
-      const estadoFinal = estadoReal?.status
-         ? normalizarEstado(estadoReal.status, posicionFinal)
-         : nuevoEstado
-
-      posicionInicial.value = posicionFinal
-      posicion.value = posicionFinal
-      estado.value = estadoFinal
-      accionPendiente.value = null
-      syncDeviceState(estadoFinal, posicionFinal)
-      emit('update:state', estadoFinal)
-      emit('close')
-   } finally {
-      cargando.value = false
-   }
-}
 </script>
 
 <style scoped>
@@ -314,7 +158,7 @@ async function aceptar() {
    border: 2px solid var(--border);
    background:
       linear-gradient(180deg, rgba(255,255,255,0.35), rgba(255,255,255,0.05)),
-      linear-gradient(180deg, #dbeafe, #eff6ff);
+      linear-gradient(180deg, #dbeafe, var(--surface2));
    overflow: hidden;
 }
 
@@ -326,10 +170,10 @@ async function aceptar() {
    background:
       repeating-linear-gradient(
          180deg,
-         color-mix(in srgb, var(--accent) 12%, white) 0px,
-         color-mix(in srgb, var(--accent) 12%, white) 12px,
-         color-mix(in srgb, var(--accent) 26%, white) 12px,
-         color-mix(in srgb, var(--accent) 26%, white) 24px
+         color-mix(in srgb, var(--accent) 12%, var(--surface)) 0px,
+         color-mix(in srgb, var(--accent) 12%, var(--surface)) 12px,
+         color-mix(in srgb, var(--accent) 26%, var(--surface)) 12px,
+         color-mix(in srgb, var(--accent) 26%, var(--surface)) 24px
       );
    border-top: 1px solid rgba(0, 0, 0, 0.08);
    transition: height 0.2s ease;
