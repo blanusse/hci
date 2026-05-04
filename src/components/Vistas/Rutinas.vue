@@ -30,6 +30,16 @@
         </button>
       </div>
       <div class="rut-home-cards">
+        <div v-if="hogares.length === 0" class="rut-no-homes">
+          <div class="rut-no-homes-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path>
+              <path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            </svg>
+          </div>
+          <p class="rut-no-homes-title">No hay hogares</p>
+          <p class="rut-no-homes-sub">Creá un hogar desde el dashboard para empezar a usar rutinas.</p>
+        </div>
         <button
           v-for="hogar in hogares"
           :key="hogar.id"
@@ -64,7 +74,7 @@
           </span>
         </button>
       </div>
-      <div class="rut-general-card">
+      <div v-if="hogares.length > 0 && hayLamparas" class="rut-general-card">
         <div class="rut-general-label">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -243,7 +253,7 @@
 import { ref, computed, onMounted } from "vue";
 import { getHomes, getRooms, getRoomDevices } from "@/services/homeService";
 import { getRoutines, updateRoutine, executeRoutine, deleteRoutine } from "@/services/routineService";
-import { manipulateDevice } from "@/services/deviceService";
+import { manipulateDevice, getDeviceTypeId } from "@/services/deviceService";
 import NuevaRutinaModal from "@/components/Modales/NuevaRutinaModal.vue";
 import ConfirmarEliminarModal from "@/components/Modales/ConfirmarEliminarModal.vue";
 import { ICONS } from "@/utils/routineIcons";
@@ -295,6 +305,7 @@ interface Home {
 }
 
 const hogares = ref<Home[]>([]);
+const hayLamparas = ref(false);
 const generalActiva = ref(true);
 const mostrarNuevaRutina = ref(false);
 const rutinaAEliminar = ref<Rutina | null>(null);
@@ -316,6 +327,19 @@ onMounted(async () => {
     hogares.value = homesData;
     if (hogares.value.length > 0) selectedHomeId.value = hogares.value[0].id;
     rutinas.value = routinesData.map(mapRutina);
+
+    // Verificar si existe al menos una lámpara en cualquier hogar
+    const lampTypeId = await getDeviceTypeId('lamp');
+    outer: for (const hogar of hogares.value) {
+      const rooms = await getRooms(hogar.id);
+      for (const room of rooms) {
+        const devices = await getRoomDevices(room.id);
+        if (devices.some((d: any) => d.type?.id === lampTypeId)) {
+          hayLamparas.value = true;
+          break outer;
+        }
+      }
+    }
   } catch (e) {
     console.error(e);
   }
@@ -439,6 +463,35 @@ async function toggleTodasLasLuces() {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
   margin: 16px 0 22px;
+}
+.rut-no-homes {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+  padding: 40px 20px;
+}
+.rut-no-homes-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--surface2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0;
+  margin-top: 8px;
+}
+.rut-no-homes-icon svg { 
+  width: 28px; height: 28px; color: var(--text-muted);
+}
+.rut-no-homes-title { 
+  font-size: 1.25rem; font-weight: 700; color: var(--text); 
+}
+.rut-no-homes-sub {
+  font-size: 1.025rem; color: var(--text-muted); max-width: 260px; line-height: 1.5; margin-top: -4px;
 }
 
 .rut-home-card {

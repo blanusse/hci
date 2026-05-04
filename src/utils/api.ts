@@ -19,6 +19,8 @@ api.interceptors.request.use((config) =>{
 
 export async function apiPost(ruta: string, body: object){
    try{
+      const token = localStorage.getItem('token')
+      console.log(token)
       const res = await api.post(ruta, body)
       return res.data
    }
@@ -63,7 +65,11 @@ export async function apiPut(ruta: string, body: object) {
 
 export async function apiPatch(ruta :string, params: any[] = []) {
    try{
+
       const res = await api.patch(ruta, params)
+      console.log('params:', params)
+      console.log('ruta:', ruta)
+      console.log('ans:', res)
       return res.data
    }
    catch(e: any){

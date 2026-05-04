@@ -124,9 +124,13 @@ const registrosAgrupados = computed(() => {
    return grupos
 })
 
+function toLocalDate(d: Date): string {
+   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
 function fechaLabel(fecha: string): string {
-   const hoy = new Date().toISOString().slice(0, 10)
-   const ayer = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
+   const hoy = toLocalDate(new Date())
+   const ayer = toLocalDate(new Date(Date.now() - 86400000))
    if (fecha === hoy) return 'Hoy'
    if (fecha === ayer) return 'Ayer'
    return new Date(fecha + 'T00:00:00').toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })
@@ -192,7 +196,7 @@ onMounted(async () => {
       // 5. Map logs to Registro
       registros.value = logs.map((log: any) => {
          const ts = new Date(log.timestamp)
-         const fecha = ts.toISOString().slice(0, 10)
+         const fecha = toLocalDate(ts)
          const hora = ts.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
          const homeInfo = deviceHomeMap[log.deviceId] ?? { homeId: '', homeName: '' }
          const info = actionInfo(log.actionName)

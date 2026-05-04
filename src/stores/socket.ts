@@ -15,32 +15,21 @@ export const useSocketStore = defineStore('socket', () => {
       if (!auth.token) return
 
       const apiKey = import.meta.env.VITE_API_KEY as string
-      const url = `https://hci.it.itba.edu.ar/api/devices/events?authorization=${encodeURIComponent(auth.token)}&X-API-Key=${encodeURIComponent(apiKey)}`
+      const url = `https://hci.it.itba.edu.ar/api/devices/events?Authorization=${encodeURIComponent('Bearer ' + auth.token)}&X-API-Key=${encodeURIComponent(apiKey)}`
       es = new EventSource(url)
 
-      es.onopen = () => {
-         console.log('[SSE] conectado')
-         conectado.value = true
-      }
+      es.onopen = () => { conectado.value = true }
 
       es.onmessage = (e) => {
          try {
             const parsed = JSON.parse(e.data)
-            console.log('[SSE] mensaje:', parsed)
             const event = parsed.event as string
-            if (handlers[event]) {
-               handlers[event].forEach(h => h(parsed))
-            }
-            if (handlers['*']) {
-               handlers['*'].forEach(h => h(parsed))
-            }
+            if (handlers[event]) handlers[event].forEach(h => h(parsed))
+            if (handlers['*']) handlers['*'].forEach(h => h(parsed))
          } catch {}
       }
 
-      es.onerror = (err) => {
-         console.error('[SSE] error:', err)
-         conectado.value = false
-      }
+      es.onerror = () => { conectado.value = false }
    }
 
    function desconectar() {

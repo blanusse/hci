@@ -44,7 +44,7 @@
             v-for="s in swatches"
             :key="s.label"
             class="swatch"
-            :class="{ selected: colorSeleccionado === s.label }"
+            :class="{ selected: color === s.hex }"
             :style="{ background: s.color }"
             @click="seleccionarColor(s)"
             :title="s.label"
@@ -52,23 +52,31 @@
             <span class="swatch-label">{{ s.label }}</span>
          </button>
 
-         <!-- Custom color picker -->
-         <label class="swatch swatch-custom" :class="{ selected: colorSeleccionado === 'Personalizar' }" :style="colorSeleccionado === 'Personalizar' ? { background: colorPersonalizado } : {}" title="Personalizar">
-            <input type="color" v-model="colorPersonalizado" @change="onColorPersonalizado" style="display:none" />
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-               <circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20"/><path d="M12 2v20M2 12h20" opacity=".3"/>
-            </svg>
-            <span class="swatch-label">Custom</span>
-         </label>
+         <!-- Custom color swatch -->
+         <div class="swatch-custom-wrap">
+            <button class="swatch swatch-custom" :class="{ selected: isCustomColor }" :style="isCustomColor ? { background: color } : {}" @click="abrirPicker" title="Personalizar">
+               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20"/><path d="M12 2v20M2 12h20" opacity=".3"/>
+               </svg>
+               <span class="swatch-label">Custom</span>
+            </button>
+            <input ref="colorInputRef" type="color" v-model="colorTemp" class="color-input-anchor" />
+         </div>
+      </div>
+
+      <!-- Color picker inline -->
+      <div v-if="mostrarPicker" class="color-picker-panel">
+         <span class="color-hex">{{ colorTemp }}</span>
+         <button class="ctrl-btn active" @click="confirmarColor">Aceptar</button>
       </div>
    </DeviceModal>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import DeviceModal from '@/components/Modales/DeviceModal.vue'
 import { deviceIcons } from '@/utils/deviceIcons'
-import { manipulateDevice } from '@/services/deviceService';
+import { manipulateDevice, getDeviceState } from '@/services/deviceService';
 
 const props = defineProps<{
    device: any
@@ -77,20 +85,35 @@ const emit = defineEmits(['close', 'update:state'])
 
 const encendido = ref(props.device.state?.status === 'on')
 const intensidad = ref(props.device.state?.brightness ?? 80)
-const colorSeleccionado = ref(props.device.state?.color ?? 'Blanca')
-const colorPersonalizado = ref('var(--surface)fff')
+const color = ref('#FFFFFF')
+const mostrarPicker = ref(false)
+const colorTemp = ref('#FFFFFF')
+const colorInputRef = ref<HTMLInputElement>()
+
+onMounted(async () => {
+   try {
+      const s = await getDeviceState(props.device.id)
+      if (s) {
+         encendido.value  = s.status === 'on'
+         intensidad.value = s.brightness ?? intensidad.value
+         if (s.color) {
+            const match = swatches.find(sw => sw.label === s.color || sw.hex.toLowerCase() === s.color.toLowerCase())
+            color.value = match ? match.hex : (s.color.startsWith('#') ? s.color : '#FFFFFF')
+         }
+      }
+   } catch {}
+})
+
+const isCustomColor = computed(() => !swatches.some(s => s.hex.toLowerCase() === color.value.toLowerCase()))
 
 const previewStyle = computed(() => {
    if (!encendido.value) return { background: 'var(--surface2)', color: 'var(--text)' }
-   const baseColor = colorSeleccionado.value === 'Personalizar'
-      ? colorPersonalizado.value
-      : swatches.find(s => s.label === colorSeleccionado.value)?.color ?? 'var(--surface)8DC'
    const alpha = Math.round((intensidad.value / 100) * 255).toString(16).padStart(2, '0')
-   return { background: baseColor + alpha, color: 'var(--text)' }
+   return { background: color.value + alpha, color: 'var(--text)' }
 })
 
 const swatches = [
-   { label: 'Blanca',   color: 'var(--surface)', hex: 'var(--surface)' },
+   { label: 'Blanca',   color: '#FFFFFF', hex: '#FFFFFF' },
    { label: 'Natural',  color: '#FFF9E6', hex: '#FFF9E6' },
    { label: 'Cálida',   color: '#FFD580', hex: '#FFD580' },
    { label: 'Naranja',  color: '#FFA040', hex: '#FFA040' },
@@ -116,15 +139,22 @@ function onIntensidadChange() {
 
 }
 
-function seleccionarColor(s: { label: string; hex: string }) {
-   colorSeleccionado.value = s.label
-   return manipulateDevice(props.device.id, 'setColor', [colorSeleccionado.value])
-
+function seleccionarColor(s: { hex: string }) {
+   color.value = s.hex
+   mostrarPicker.value = false
+   manipulateDevice(props.device.id, 'setColor', [s.hex])
 }
 
-function onColorPersonalizado() {
-   colorSeleccionado.value = 'Personalizar'
-   return manipulateDevice(props.device.id, 'setColor', [colorPersonalizado.value])
+function abrirPicker() {
+   colorTemp.value = color.value
+   mostrarPicker.value = true
+   colorInputRef.value?.click()
+}
+
+function confirmarColor() {
+   color.value = colorTemp.value
+   mostrarPicker.value = false
+   manipulateDevice(props.device.id, 'setColor', [color.value])
 }
 </script>
 
@@ -262,4 +292,36 @@ function onColorPersonalizado() {
 }
 .swatch-custom.selected { color: white; }
 .swatch-custom.selected .swatch-label { color: white; }
+
+.swatch-custom-wrap {
+   position: relative;
+}
+
+.color-input-anchor {
+   position: absolute;
+   inset: 0;
+   opacity: 0;
+   pointer-events: none;
+   width: 100%;
+   height: 100%;
+}
+
+.color-picker-panel {
+   display: flex;
+   align-items: center;
+   gap: 12px;
+   margin-top: 12px;
+   padding: 12px 16px;
+   border-radius: 12px;
+   background: var(--surface2);
+   border: 1.5px solid var(--border);
+}
+
+.color-hex {
+   font-size: 0.85rem;
+   font-weight: 600;
+   color: var(--text-muted);
+   font-family: monospace;
+   letter-spacing: 0.05em;
+}
 </style>

@@ -12,7 +12,7 @@
             </button>
             <h2 class="hd-home-name">{{ homeName }}</h2>
          </div>
-         <button class="hd-edit-btn" @click="modoEdicion= !modoEdicion" :class="{'hd-edit-btn-active' : modoEdicion}">
+         <button v-if="isOwner" class="hd-edit-btn" @click="modoEdicion= !modoEdicion" :class="{'hd-edit-btn-active' : modoEdicion}">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/>
                <path d="m15 5 4 4"/>
@@ -25,7 +25,7 @@
       <div class="hd-rooms-grid">
 
          <!-- Agregar habitación -->
-         <button class="add-card-btn" @click="mostrarNuevoHabitacion = true">
+         <button v-if="isOwner" class="add-card-btn" @click="mostrarNuevoHabitacion = true">
             <div class="hd-room-add-icon">
                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M5 12h14"/><path d="M12 5v14"/>
@@ -77,12 +77,12 @@
                   <div class="hd-device-info">
                      <span class="hd-device-name">{{ device.name }}</span>
                   </div>
-                  <button
-                     class="device-toggle" :class="{ on: device.state?.status === 'on' }"
-                     @click.stop="toggleDevice(device)"
-                  >
-                     <span class="toggle-knob"></span>
-                  </button>
+                  <component
+                     v-if="cardActions[device.type?.name]"
+                     :is="cardActions[device.type?.name]"
+                     :device="device"
+                     @update:state="device.state.status = $event"
+                  />
                   <button v-if="modoEdicion" class="delete-btn" @click.stop="borrarDispositivo(device)" >
                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M10 11v6"/><path d="M14 11v6"/>
@@ -141,22 +141,35 @@
      v-if="dispositivoAbierto"       
      :device="dispositivoAbierto"                             
      @close="dispositivoAbierto = null; cargarRooms()"
-     @update:state="dispositivoAbierto.state.status = $event"
+      @update:state="dispositivoAbierto.state ? dispositivoAbierto.state.status = $event : dispositivoAbierto.state = { status: $event }"
   />
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { getRooms, getRoomDevices, getHome } from '@/services/homeService'
+import { getUserInfo } from '@/services/userService'
 import { deviceIcons } from '@/utils/deviceIcons'
 import { getDeviceTypeName, deleteDevice, moverDevice, manipulateDevice, deleteRoom } from '@/services/deviceService'
 import { useSocketStore } from '@/stores/socket'
+
+import { LamparaCardActions, AireCardActions, HornoCardActions, HeladeraCardActions, ParlanteCardActions, GrifoCardActions, PersianaCardActions } from '@/components/Dispositivos/cardActions'
 
 import NuevoDispositivoModal from '@/components/Modales/NuevoDispositivoModal.vue'
 import NuevoHabitacionModal from '@/components/Modales/NuevaHabitacionModal.vue'
 import DeviceModalRouter from '@/components/Modales/DeviceModalRouter.vue'
 import ConfirmarEliminarModal from '@/components/Modales/ConfirmarEliminarModal.vue'
+
+const cardActions: Record<string, any> = {
+   lamp:    LamparaCardActions,
+   ac:      AireCardActions,
+   oven:    HornoCardActions,
+   refrigerator: HeladeraCardActions,
+   speaker: ParlanteCardActions,
+   faucet:  GrifoCardActions,
+   blinds:  PersianaCardActions,
+}
 
 const route = useRoute()
 const socketStore = useSocketStore()
@@ -174,13 +187,15 @@ const dispositivoAbierto = ref<any>(null)
 const dispositivoAEliminar = ref<any>(null)
 const cuartoAEliminar = ref<any>(null)
 const modoEdicion = ref(false)
+const isOwner = ref(false)
 
 const deviceArrastrado = ref<any>(null)
 
 
 onMounted(async () => {
-   const home = await(getHome(homeId))
+   const [home, userInfo] = await Promise.all([getHome(homeId), getUserInfo()])
    homeName.value = home.name
+   isOwner.value = home.metadata?.ownerEmail === userInfo.email
    await cargarRooms()
 })
 
@@ -199,16 +214,19 @@ async function onDrop(roomDestino: any){
    await cargarRooms()
 }
 
-async function toggleDevice(device: any) {
-   const action = device.state?.status === 'on' ? 'turnOff' : 'turnOn'
-   await manipulateDevice(device.id, action)
-   device.state.status = action === 'turnOn' ? 'on' : 'off'
-}
-
 function abrirDispositivo(device: any) {                                                                                                                                
      console.log('device:', device)
-     dispositivoAbierto.value = device
+     asegurarTipoYabrir(device)
   }
+
+async function asegurarTipoYabrir(device: any) {
+   if (!device?.type?.name && device?.type?.id) {
+      try {
+         device.type.name = await getDeviceTypeName(device.type.id)
+      } catch {}
+   }
+   dispositivoAbierto.value = device
+}
 
 
 
@@ -218,8 +236,10 @@ async function cargarRooms() {
    for (const room of rawRooms) {
       room.devices = await getRoomDevices(room.id)
       for (const device of room.devices) {
-         device.type.name = await getDeviceTypeName(device.type.id)
-      }  
+         if(device.type?.id){
+            device.type.name = await getDeviceTypeName(device.type.id)
+         }
+      }
    }
    rooms.value = rawRooms
 }
