@@ -12,7 +12,7 @@
             </button>
             <h2 class="hd-home-name">{{ homeName }}</h2>
          </div>
-         <button class="hd-edit-btn" @click="modoEdicion= !modoEdicion" :class="{'hd-edit-btn-active' : modoEdicion}">
+         <button v-if="isOwner" class="hd-edit-btn" @click="modoEdicion= !modoEdicion" :class="{'hd-edit-btn-active' : modoEdicion}">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/>
                <path d="m15 5 4 4"/>
@@ -25,7 +25,7 @@
       <div class="hd-rooms-grid">
 
          <!-- Agregar habitación -->
-         <button class="add-card-btn" @click="mostrarNuevoHabitacion = true">
+         <button v-if="isOwner" class="add-card-btn" @click="mostrarNuevoHabitacion = true">
             <div class="hd-room-add-icon">
                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M5 12h14"/><path d="M12 5v14"/>
@@ -149,11 +149,12 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { getRooms, getRoomDevices, getHome } from '@/services/homeService'
+import { getUserInfo } from '@/services/userService'
 import { deviceIcons } from '@/utils/deviceIcons'
 import { getDeviceTypeName, deleteDevice, moverDevice, manipulateDevice, deleteRoom } from '@/services/deviceService'
 import { useSocketStore } from '@/stores/socket'
 
-import { LamparaCardActions, AireCardActions, HornoCardActions, HeladeraCardActions, ParlanteCardActions, GrifoCardActions, PersianaCardActions } from '@/components/dispositivos/cardActions'
+import { LamparaCardActions, AireCardActions, HornoCardActions, HeladeraCardActions, ParlanteCardActions, GrifoCardActions, PersianaCardActions } from '@/components/Dispositivos/cardActions'
 
 import NuevoDispositivoModal from '@/components/Modales/NuevoDispositivoModal.vue'
 import NuevoHabitacionModal from '@/components/Modales/NuevaHabitacionModal.vue'
@@ -186,13 +187,15 @@ const dispositivoAbierto = ref<any>(null)
 const dispositivoAEliminar = ref<any>(null)
 const cuartoAEliminar = ref<any>(null)
 const modoEdicion = ref(false)
+const isOwner = ref(false)
 
 const deviceArrastrado = ref<any>(null)
 
 
 onMounted(async () => {
-   const home = await(getHome(homeId))
+   const [home, userInfo] = await Promise.all([getHome(homeId), getUserInfo()])
    homeName.value = home.name
+   isOwner.value = home.metadata?.ownerEmail === userInfo.email
    await cargarRooms()
 })
 
@@ -209,12 +212,6 @@ async function onDrop(roomDestino: any){
    await moverDevice(deviceArrastrado.value.id, roomDestino.id)
    deviceArrastrado.value = null
    await cargarRooms()
-}
-
-async function toggleDevice(device: any) {
-   const action = device.state?.status === 'on' ? 'turnOff' : 'turnOn'
-   await manipulateDevice(device.id, action)
-   device.state.status = action === 'turnOn' ? 'on' : 'off'
 }
 
 function abrirDispositivo(device: any) {                                                                                                                                
@@ -242,7 +239,7 @@ async function cargarRooms() {
          if(device.type?.id){
             device.type.name = await getDeviceTypeName(device.type.id)
          }
-      }  
+      }
    }
    rooms.value = rawRooms
 }

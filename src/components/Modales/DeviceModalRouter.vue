@@ -10,13 +10,13 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import LamparaModal from '@/components/dispositivos/LamparaModal.vue'
-import AireModal from '@/components/dispositivos/AireModal.vue'
-import ParlanteModal from '@/components/dispositivos/ParlanteModal.vue'
-import GrifoModal from '@/components/dispositivos/GrifoModal.vue'
-import HeladeraModal from '@/components/dispositivos/HeladeraModal.vue'
-import HornoModal from '@/components/dispositivos/HornoModal.vue'
-import PersianaModal from '@/components/dispositivos/PersianaModal.vue'
+import LamparaModal from '@/components/Dispositivos/LamparaModal.vue'
+import AireModal from '@/components/Dispositivos/AireModal.vue'
+import ParlanteModal from '@/components/Dispositivos/ParlanteModal.vue'
+import GrifoModal from '@/components/Dispositivos/GrifoModal.vue'
+import HeladeraModal from '@/components/Dispositivos/HeladeraModal.vue'
+import HornoModal from '@/components/Dispositivos/HornoModal.vue'
+import PersianaModal from '@/components/Dispositivos/PersianaModal.vue'
 
 const props = defineProps<{ device: any }>()
 defineEmits(['close', 'update:state'])

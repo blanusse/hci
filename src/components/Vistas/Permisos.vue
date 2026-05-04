@@ -236,6 +236,7 @@ async function sendInvitation() {
     sentEmail.value = trimmed
     inviteSuccess.value = true
     email.value = ''
+    members.value = await getHomeMembers(selectedHome.value.id)
   } catch (err: any) {
     inviteError.value = err?.response?.data?.error?.description ?? 'No se pudo enviar la invitación.'
   } finally {
